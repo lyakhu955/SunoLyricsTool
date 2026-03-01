@@ -212,6 +212,14 @@ body {
   margin-top: 4px;
 }
 
+.created-by {
+  color: var(--text-muted);
+  font-size: 12px;
+  margin-top: 6px;
+  letter-spacing: 0.5px;
+  font-weight: 500;
+}
+
 /* ===== TABS ===== */
 .tabs {
   display: flex;
