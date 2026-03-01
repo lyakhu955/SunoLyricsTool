@@ -150,21 +150,39 @@ FORMATO OUTPUT RICHIESTO:
     };
 
     try {
-      const response = await fetch(url, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(body)
-      });
+      let response;
+      let retries = 0;
+      const maxRetries = 2;
+
+      while (retries <= maxRetries) {
+        response = await fetch(url, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(body)
+        });
+
+        if (response.status === 429 && retries < maxRetries) {
+          retries++;
+          const waitTime = retries * 3000; // 3s, 6s
+          console.log(`Rate limited, retry ${retries}/${maxRetries} in ${waitTime/1000}s...`);
+          await new Promise(r => setTimeout(r, waitTime));
+          continue;
+        }
+        break;
+      }
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
         const errorMsg = errorData?.error?.message || `Errore HTTP ${response.status}`;
 
+        if (response.status === 400) {
+          throw new Error('Richiesta non valida. Controlla l\'API key nelle Impostazioni.');
+        }
         if (response.status === 403) {
           throw new Error('API key non valida o non autorizzata. Controlla la chiave nelle Impostazioni.');
         }
         if (response.status === 429) {
-          throw new Error('Troppe richieste. Aspetta qualche secondo e riprova.');
+          throw new Error('Troppe richieste. Aspetta 30-60 secondi e riprova.');
         }
         throw new Error(`Errore Gemini: ${errorMsg}`);
       }
