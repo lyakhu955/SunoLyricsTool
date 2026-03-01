@@ -1,0 +1,639 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="theme-color" content="#7c3aed">
+  <meta name="description" content="Generatore AI di testi musicali e prompt ottimizzati per Suno">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="SunoLyrics">
+  <link rel="manifest" href="manifest.json">
+  <link rel="apple-touch-icon" href="icons/icon-192.svg">
+  <title>🎵 Suno Lyrics AI Generator</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <!-- Install Banner -->
+  <div id="installBanner" class="install-banner hidden">
+    <div class="install-content">
+      <span class="install-icon">📲</span>
+      <div class="install-text">
+        <strong>Installa l'app!</strong>
+        <small>Usa SunoLyrics offline dal tuo telefono</small>
+      </div>
+      <button id="installBtn" class="btn-install">Installa</button>
+      <button id="dismissInstall" class="btn-dismiss">✕</button>
+    </div>
+  </div>
+
+  <!-- Settings Modal -->
+  <div id="settingsModal" class="modal-overlay hidden">
+    <div class="modal">
+      <div class="modal-header">
+        <h2>⚙️ Impostazioni</h2>
+        <button id="closeSettings" class="btn-dismiss">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label for="geminiApiKey">🔑 API Key Google Gemini</label>
+          <div class="input-with-btn">
+            <input type="password" id="geminiApiKey" placeholder="Inserisci la tua API key..." class="input">
+            <button id="toggleKeyVisibility" class="btn-icon-small" title="Mostra/Nascondi">👁️</button>
+          </div>
+          <small class="form-hint">Ottieni la chiave da <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener">Google AI Studio</a></small>
+        </div>
+        <div class="form-group">
+          <div id="apiKeyStatus" class="api-status">
+            <span class="status-dot offline"></span>
+            <span class="status-text">API key non configurata</span>
+          </div>
+        </div>
+        <button id="saveApiKey" class="btn-primary" style="width:100%">💾 Salva API Key</button>
+        <button id="testApiKey" class="btn-secondary" style="width:100%; margin-top:8px">🧪 Testa Connessione</button>
+        <hr class="modal-divider">
+        <div class="form-group">
+          <label class="checkbox-label">
+            <input type="checkbox" id="useAiFallback" checked>
+            <span class="checkmark"></span>
+            Usa generazione template se offline/errore AI
+          </label>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Header -->
+  <header class="app-header">
+    <div class="header-top">
+      <div class="logo">
+        <span class="logo-icon">🎵</span>
+        <h1>Suno Lyrics <span class="ai-badge">AI</span></h1>
+      </div>
+      <button id="settingsBtn" class="btn-settings" title="Impostazioni">
+        ⚙️
+      </button>
+    </div>
+    <div id="aiStatusBar" class="ai-status-bar">
+      <span class="status-dot offline"></span>
+      <span class="ai-status-text">Modalità Template</span>
+    </div>
+    <p class="tagline">Genera testi e prompt perfetti per Suno</p>
+    <nav class="tabs">
+      <button class="tab active" data-tab="generator">🎤 Genera</button>
+      <button class="tab" data-tab="style-builder">🎛️ Style Builder</button>
+      <button class="tab" data-tab="metatags">🏷️ Meta Tags</button>
+      <button class="tab" data-tab="guide">📖 Guida</button>
+      <button class="tab" data-tab="saved">💾 Salvati</button>
+    </nav>
+  </header>
+
+  <!-- Main Content -->
+  <main class="app-main">
+
+    <!-- ============ TAB: GENERATOR ============ -->
+    <section id="tab-generator" class="tab-content active">
+      <div class="card">
+        <h2 class="card-title">🎶 Generatore Lyrics per Suno</h2>
+        
+        <div class="form-group">
+          <label for="songTheme">Tema della canzone</label>
+          <input type="text" id="songTheme" placeholder="es. amore perduto, nostalgia estiva, ribellione..." class="input">
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="genre">Genere</label>
+            <select id="genre" class="input">
+              <option value="">Seleziona genere...</option>
+              <option value="pop">Pop</option>
+              <option value="rock">Rock</option>
+              <option value="hip-hop">Hip Hop / Rap</option>
+              <option value="trap">Trap</option>
+              <option value="r&b">R&B / Soul</option>
+              <option value="electronic">Elettronica / EDM</option>
+              <option value="country">Country</option>
+              <option value="metal">Metal</option>
+              <option value="punk">Punk</option>
+              <option value="jazz">Jazz</option>
+              <option value="blues">Blues</option>
+              <option value="folk">Folk</option>
+              <option value="reggae">Reggae</option>
+              <option value="latin">Latin / Reggaeton</option>
+              <option value="classical">Classica / Orchestrale</option>
+              <option value="indie">Indie</option>
+              <option value="alternative">Alternative</option>
+              <option value="synthwave">Synthwave</option>
+              <option value="lo-fi">Lo-Fi</option>
+              <option value="gospel">Gospel</option>
+              <option value="funk">Funk</option>
+              <option value="disco">Disco</option>
+              <option value="ambient">Ambient</option>
+              <option value="cinematic">Cinematic / Film Score</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="mood">Mood / Atmosfera</label>
+            <select id="mood" class="input">
+              <option value="">Seleziona mood...</option>
+              <option value="happy">Felice / Energico</option>
+              <option value="sad">Triste / Malinconico</option>
+              <option value="romantic">Romantico</option>
+              <option value="angry">Arrabbiato / Aggressivo</option>
+              <option value="chill">Chill / Rilassato</option>
+              <option value="dark">Dark / Cupo</option>
+              <option value="epic">Epico / Cinematico</option>
+              <option value="nostalgic">Nostalgico</option>
+              <option value="dreamy">Sognante / Etereo</option>
+              <option value="hype">Hype / Party</option>
+              <option value="introspective">Introspettivo</option>
+              <option value="motivational">Motivazionale</option>
+              <option value="mysterious">Misterioso</option>
+              <option value="spiritual">Spirituale</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="language">Lingua lyrics</label>
+            <select id="language" class="input">
+              <option value="italian">🇮🇹 Italiano</option>
+              <option value="english">🇬🇧 Inglese</option>
+              <option value="spanish">🇪🇸 Spagnolo</option>
+              <option value="french">🇫🇷 Francese</option>
+              <option value="mixed-it-en">🇮🇹🇬🇧 Mix IT/EN</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="vocalType">Tipo voce</label>
+            <select id="vocalType" class="input">
+              <option value="male">Voce Maschile</option>
+              <option value="female">Voce Femminile</option>
+              <option value="duet">Duetto</option>
+              <option value="instrumental">Strumentale</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="structure">Struttura canzone</label>
+            <select id="structure" class="input">
+              <option value="standard">Standard (Verse-Chorus-Verse-Chorus-Bridge-Chorus)</option>
+              <option value="simple">Semplice (Verse-Chorus-Verse-Chorus)</option>
+              <option value="extended">Estesa (con Intro, Pre-Chorus, Outro)</option>
+              <option value="rap">Rap (Verse-Hook-Verse-Hook-Bridge-Hook)</option>
+              <option value="ballad">Ballad (lenta con build)</option>
+              <option value="edm">EDM (Build-Drop-Verse-Build-Drop)</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="era">Era / Decade</label>
+            <select id="era" class="input">
+              <option value="modern">Moderno (2020s)</option>
+              <option value="2010s">2010s</option>
+              <option value="2000s">2000s</option>
+              <option value="90s">90s</option>
+              <option value="80s">80s</option>
+              <option value="70s">70s</option>
+              <option value="60s">60s</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="extraDetails">Dettagli extra (opzionale)</label>
+          <textarea id="extraDetails" placeholder="Aggiungi dettagli specifici: stile vocale, strumenti preferiti, atmosfera, riferimenti..." class="input textarea" rows="3"></textarea>
+        </div>
+
+        <div class="form-group checkbox-group">
+          <label class="checkbox-label">
+            <input type="checkbox" id="includeMetaTags" checked>
+            <span class="checkmark"></span>
+            Includi Meta Tags Suno nei lyrics
+          </label>
+          <label class="checkbox-label">
+            <input type="checkbox" id="includeStylePrompt" checked>
+            <span class="checkmark"></span>
+            Genera Style Prompt per Suno
+          </label>
+          <label class="checkbox-label">
+            <input type="checkbox" id="optimizeForSuno" checked>
+            <span class="checkmark"></span>
+            Ottimizza struttura per Suno (4 righe per sezione)
+          </label>
+        </div>
+
+        <button id="generateBtn" class="btn-primary btn-generate">
+          <span class="btn-icon">✨</span> Genera Testo per Suno
+        </button>
+      </div>
+
+      <!-- Results -->
+      <div id="results" class="results hidden">
+        <!-- Style Prompt Result -->
+        <div class="card result-card">
+          <div class="result-header">
+            <h3>🎛️ Style Prompt per Suno</h3>
+            <button class="btn-copy" data-target="stylePromptOutput">📋 Copia</button>
+          </div>
+          <div id="stylePromptOutput" class="output-box code"></div>
+          <p class="hint">👆 Incolla questo nel campo "Style of Music" di Suno</p>
+        </div>
+
+        <!-- Lyrics Result -->
+        <div class="card result-card">
+          <div class="result-header">
+            <h3>🎤 Lyrics con Meta Tags</h3>
+            <button class="btn-copy" data-target="lyricsOutput">📋 Copia</button>
+          </div>
+          <div id="lyricsOutput" class="output-box lyrics"></div>
+          <p class="hint">👆 Incolla questo nel campo "Lyrics" di Suno</p>
+        </div>
+
+        <!-- Tips -->
+        <div class="card tips-card">
+          <h3>💡 Consigli per questa generazione</h3>
+          <div id="tipsOutput"></div>
+        </div>
+
+        <div class="actions-row">
+          <button id="regenerateBtn" class="btn-secondary">🔄 Rigenera</button>
+          <button id="saveBtn" class="btn-secondary">💾 Salva</button>
+          <button id="shareBtn" class="btn-secondary">📤 Condividi</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ TAB: STYLE BUILDER ============ -->
+    <section id="tab-style-builder" class="tab-content">
+      <div class="card">
+        <h2 class="card-title">🎛️ Style Prompt Builder</h2>
+        <p class="subtitle">Costruisci il prompt di stile perfetto per Suno pezzo per pezzo</p>
+
+        <div class="builder-section">
+          <h3>Genere principale</h3>
+          <div class="chip-group" id="genreChips">
+            <button class="chip" data-value="pop">Pop</button>
+            <button class="chip" data-value="rock">Rock</button>
+            <button class="chip" data-value="hip hop">Hip Hop</button>
+            <button class="chip" data-value="trap">Trap</button>
+            <button class="chip" data-value="R&B">R&B</button>
+            <button class="chip" data-value="electronic">Electronic</button>
+            <button class="chip" data-value="EDM">EDM</button>
+            <button class="chip" data-value="country">Country</button>
+            <button class="chip" data-value="metal">Metal</button>
+            <button class="chip" data-value="punk">Punk</button>
+            <button class="chip" data-value="jazz">Jazz</button>
+            <button class="chip" data-value="blues">Blues</button>
+            <button class="chip" data-value="folk">Folk</button>
+            <button class="chip" data-value="reggae">Reggae</button>
+            <button class="chip" data-value="latin">Latin</button>
+            <button class="chip" data-value="reggaeton">Reggaeton</button>
+            <button class="chip" data-value="indie">Indie</button>
+            <button class="chip" data-value="alternative">Alternative</button>
+            <button class="chip" data-value="synthwave">Synthwave</button>
+            <button class="chip" data-value="lo-fi">Lo-Fi</button>
+            <button class="chip" data-value="funk">Funk</button>
+            <button class="chip" data-value="disco">Disco</button>
+            <button class="chip" data-value="ambient">Ambient</button>
+            <button class="chip" data-value="classical">Classical</button>
+            <button class="chip" data-value="cinematic">Cinematic</button>
+            <button class="chip" data-value="gospel">Gospel</button>
+            <button class="chip" data-value="soul">Soul</button>
+          </div>
+        </div>
+
+        <div class="builder-section">
+          <h3>Sub-genere / Stile</h3>
+          <div class="chip-group" id="subgenreChips">
+            <button class="chip" data-value="melodic">Melodic</button>
+            <button class="chip" data-value="progressive">Progressive</button>
+            <button class="chip" data-value="acoustic">Acoustic</button>
+            <button class="chip" data-value="dark">Dark</button>
+            <button class="chip" data-value="dreamy">Dreamy</button>
+            <button class="chip" data-value="psychedelic">Psychedelic</button>
+            <button class="chip" data-value="neo-soul">Neo-Soul</button>
+            <button class="chip" data-value="post-punk">Post-Punk</button>
+            <button class="chip" data-value="shoegaze">Shoegaze</button>
+            <button class="chip" data-value="grunge">Grunge</button>
+            <button class="chip" data-value="boom bap">Boom Bap</button>
+            <button class="chip" data-value="drill">Drill</button>
+            <button class="chip" data-value="cloud rap">Cloud Rap</button>
+            <button class="chip" data-value="singer-songwriter">Singer-Songwriter</button>
+            <button class="chip" data-value="power ballad">Power Ballad</button>
+            <button class="chip" data-value="arena rock">Arena Rock</button>
+            <button class="chip" data-value="outlaw country">Outlaw Country</button>
+            <button class="chip" data-value="nu metal">Nu Metal</button>
+            <button class="chip" data-value="metalcore">Metalcore</button>
+            <button class="chip" data-value="tech house">Tech House</button>
+            <button class="chip" data-value="drum and bass">Drum & Bass</button>
+            <button class="chip" data-value="future bass">Future Bass</button>
+          </div>
+        </div>
+
+        <div class="builder-section">
+          <h3>Voce</h3>
+          <div class="chip-group" id="vocalChips">
+            <button class="chip" data-value="male vocals">Male Vocals</button>
+            <button class="chip" data-value="female vocals">Female Vocals</button>
+            <button class="chip" data-value="raspy vocals">Raspy</button>
+            <button class="chip" data-value="smooth vocals">Smooth</button>
+            <button class="chip" data-value="powerful vocals">Powerful</button>
+            <button class="chip" data-value="whispered vocals">Whispered</button>
+            <button class="chip" data-value="emotional delivery">Emotional</button>
+            <button class="chip" data-value="aggressive delivery">Aggressive</button>
+            <button class="chip" data-value="baritone">Baritone</button>
+            <button class="chip" data-value="soprano">Soprano</button>
+            <button class="chip" data-value="falsetto">Falsetto</button>
+            <button class="chip" data-value="duet">Duet</button>
+            <button class="chip" data-value="choir vocals">Choir</button>
+            <button class="chip" data-value="autotuned delivery">Autotuned</button>
+            <button class="chip" data-value="spoken word">Spoken Word</button>
+            <button class="chip" data-value="instrumental">Instrumental</button>
+          </div>
+        </div>
+
+        <div class="builder-section">
+          <h3>Strumenti</h3>
+          <div class="chip-group" id="instrumentChips">
+            <button class="chip" data-value="acoustic guitar">Acoustic Guitar</button>
+            <button class="chip" data-value="electric guitar">Electric Guitar</button>
+            <button class="chip" data-value="piano">Piano</button>
+            <button class="chip" data-value="synth">Synth</button>
+            <button class="chip" data-value="808 bass">808 Bass</button>
+            <button class="chip" data-value="strings">Strings</button>
+            <button class="chip" data-value="brass">Brass</button>
+            <button class="chip" data-value="violin">Violin</button>
+            <button class="chip" data-value="cello">Cello</button>
+            <button class="chip" data-value="organ">Organ</button>
+            <button class="chip" data-value="drums">Drums</button>
+            <button class="chip" data-value="bass guitar">Bass Guitar</button>
+            <button class="chip" data-value="saxophone">Saxophone</button>
+            <button class="chip" data-value="trumpet">Trumpet</button>
+            <button class="chip" data-value="flute">Flute</button>
+            <button class="chip" data-value="harmonica">Harmonica</button>
+            <button class="chip" data-value="pedal steel guitar">Pedal Steel</button>
+            <button class="chip" data-value="orchestral">Orchestral</button>
+          </div>
+        </div>
+
+        <div class="builder-section">
+          <h3>Descrittori / Mood</h3>
+          <div class="chip-group" id="moodChips">
+            <button class="chip" data-value="energetic">Energetic</button>
+            <button class="chip" data-value="melancholic">Melancholic</button>
+            <button class="chip" data-value="anthemic">Anthemic</button>
+            <button class="chip" data-value="atmospheric">Atmospheric</button>
+            <button class="chip" data-value="catchy hooks">Catchy Hooks</button>
+            <button class="chip" data-value="driving beat">Driving Beat</button>
+            <button class="chip" data-value="heavy riffs">Heavy Riffs</button>
+            <button class="chip" data-value="ethereal">Ethereal</button>
+            <button class="chip" data-value="gritty">Gritty</button>
+            <button class="chip" data-value="uplifting">Uplifting</button>
+            <button class="chip" data-value="haunting">Haunting</button>
+            <button class="chip" data-value="cinematic">Cinematic</button>
+            <button class="chip" data-value="raw">Raw</button>
+            <button class="chip" data-value="polished production">Polished</button>
+            <button class="chip" data-value="dynamic">Dynamic</button>
+            <button class="chip" data-value="groovy">Groovy</button>
+            <button class="chip" data-value="soulful">Soulful</button>
+            <button class="chip" data-value="epic">Epic</button>
+          </div>
+        </div>
+
+        <div class="builder-section">
+          <h3>Produzione</h3>
+          <div class="chip-group" id="productionChips">
+            <button class="chip" data-value="tape saturation">Tape Saturation</button>
+            <button class="chip" data-value="analog warmth">Analog Warmth</button>
+            <button class="chip" data-value="close mic presence">Close Mic</button>
+            <button class="chip" data-value="wide stereo">Wide Stereo</button>
+            <button class="chip" data-value="Dolby Atmos mix">Dolby Atmos</button>
+            <button class="chip" data-value="high-fidelity">Hi-Fi</button>
+            <button class="chip" data-value="lo-fi texture">Lo-Fi Texture</button>
+            <button class="chip" data-value="natural dynamics">Natural Dynamics</button>
+            <button class="chip" data-value="room acoustics">Room Acoustics</button>
+            <button class="chip" data-value="one-take performance">One-Take</button>
+          </div>
+        </div>
+
+        <!-- Live Preview -->
+        <div class="builder-preview">
+          <div class="result-header">
+            <h3>📋 Style Prompt Generato</h3>
+            <button class="btn-copy" data-target="builderOutput">📋 Copia</button>
+          </div>
+          <div id="builderOutput" class="output-box code">Seleziona gli elementi sopra per costruire il tuo prompt...</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ TAB: META TAGS ============ -->
+    <section id="tab-metatags" class="tab-content">
+      <div class="card">
+        <h2 class="card-title">🏷️ Guida Meta Tags Suno</h2>
+        <p class="subtitle">I meta tags sono istruzioni tra parentesi quadre [] che inserisci nei lyrics per controllare come Suno interpreta ogni sezione</p>
+        
+        <div class="metatag-section">
+          <h3>📐 Tag Struttura Base</h3>
+          <p>Usa sempre questi per definire le sezioni:</p>
+          <div class="tag-list">
+            <button class="tag-item" data-tag="[Intro]">[Intro]</button>
+            <button class="tag-item" data-tag="[Verse]">[Verse]</button>
+            <button class="tag-item" data-tag="[Verse 1]">[Verse 1]</button>
+            <button class="tag-item" data-tag="[Verse 2]">[Verse 2]</button>
+            <button class="tag-item" data-tag="[Pre-Chorus]">[Pre-Chorus]</button>
+            <button class="tag-item" data-tag="[Chorus]">[Chorus]</button>
+            <button class="tag-item" data-tag="[Bridge]">[Bridge]</button>
+            <button class="tag-item" data-tag="[Outro]">[Outro]</button>
+            <button class="tag-item" data-tag="[Build]">[Build]</button>
+            <button class="tag-item" data-tag="[Drop]">[Drop]</button>
+            <button class="tag-item" data-tag="[Breakdown]">[Breakdown]</button>
+            <button class="tag-item" data-tag="[Instrumental]">[Instrumental]</button>
+            <button class="tag-item" data-tag="[Instrumental Intro]">[Instrumental Intro]</button>
+            <button class="tag-item" data-tag="[Interlude]">[Interlude]</button>
+            <button class="tag-item" data-tag="[Hook]">[Hook]</button>
+            <button class="tag-item" data-tag="[Refrain]">[Refrain]</button>
+            <button class="tag-item" data-tag="[Coda]">[Coda]</button>
+            <button class="tag-item" data-tag="[End]">[End]</button>
+          </div>
+        </div>
+
+        <div class="metatag-section">
+          <h3>🎤 Tag Vocali</h3>
+          <div class="tag-list">
+            <button class="tag-item" data-tag="[raspy lead vocal]">[raspy lead vocal]</button>
+            <button class="tag-item" data-tag="[autotuned delivery]">[autotuned delivery]</button>
+            <button class="tag-item" data-tag="[stacked harmonies]">[stacked harmonies]</button>
+            <button class="tag-item" data-tag="[anthemic chorus]">[anthemic chorus]</button>
+            <button class="tag-item" data-tag="[spoken word verse]">[spoken word verse]</button>
+            <button class="tag-item" data-tag="[emotional build-up]">[emotional build-up]</button>
+            <button class="tag-item" data-tag="[crowd-style vocals]">[crowd-style vocals]</button>
+            <button class="tag-item" data-tag="[whispered vocals]">[whispered vocals]</button>
+            <button class="tag-item" data-tag="[powerful belting]">[powerful belting]</button>
+            <button class="tag-item" data-tag="[falsetto]">[falsetto]</button>
+            <button class="tag-item" data-tag="[warm baritone]">[warm baritone]</button>
+            <button class="tag-item" data-tag="[vocal fry]">[vocal fry]</button>
+            <button class="tag-item" data-tag="[ad-lib]">[ad-lib]</button>
+          </div>
+        </div>
+
+        <div class="metatag-section">
+          <h3>🎸 Tag Strumentali</h3>
+          <div class="tag-list">
+            <button class="tag-item" data-tag="[guitar solo]">[guitar solo]</button>
+            <button class="tag-item" data-tag="[808 sub bass]">[808 sub bass]</button>
+            <button class="tag-item" data-tag="[piano only]">[piano only]</button>
+            <button class="tag-item" data-tag="[orchestral strings]">[orchestral strings]</button>
+            <button class="tag-item" data-tag="[pedal steel guitar]">[pedal steel guitar]</button>
+            <button class="tag-item" data-tag="[sidechained synth bass]">[sidechained synth bass]</button>
+            <button class="tag-item" data-tag="[groovy bass]">[groovy bass]</button>
+            <button class="tag-item" data-tag="[drum fill]">[drum fill]</button>
+            <button class="tag-item" data-tag="[brass section]">[brass section]</button>
+            <button class="tag-item" data-tag="[synth arpeggio]">[synth arpeggio]</button>
+          </div>
+        </div>
+
+        <div class="metatag-section">
+          <h3>🚀 Tag Stacking Avanzato</h3>
+          <p>Combina più istruzioni usando il separatore <code>|</code></p>
+          <div class="example-box">
+            <strong>Esempio Rock:</strong>
+            <code>[Chorus | anthemic chorus | stacked harmonies | driving kick-snare beat]</code>
+          </div>
+          <div class="example-box">
+            <strong>Esempio Trap:</strong>
+            <code>[Verse | autotuned delivery | tuned male vocal | light reverb | stereo slapback]</code>
+          </div>
+          <div class="example-box">
+            <strong>Esempio EDM:</strong>
+            <code>[Drop | explosive drop | sidechained synth bass | layered white noise riser]</code>
+          </div>
+          <div class="example-box">
+            <strong>Esempio Country:</strong>
+            <code>[Verse | spoken word verse | warm baritone EQ | slight drawl]</code>
+          </div>
+        </div>
+
+        <!-- Meta tag clipboard area -->
+        <div class="metatag-clipboard">
+          <div class="result-header">
+            <h3>📋 I tuoi Meta Tags</h3>
+            <button class="btn-copy" data-target="metaTagClipboard">📋 Copia</button>
+            <button id="clearMetaTags" class="btn-secondary btn-small">🗑️ Svuota</button>
+          </div>
+          <div id="metaTagClipboard" class="output-box code" contenteditable="true">Clicca sui tag sopra per aggiungerli qui...</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ TAB: GUIDE ============ -->
+    <section id="tab-guide" class="tab-content">
+      <div class="card">
+        <h2 class="card-title">📖 Guida Completa Suno</h2>
+
+        <div class="guide-section">
+          <h3>🎯 Come funziona Suno?</h3>
+          <p>Suno ha due campi principali:</p>
+          <ul>
+            <li><strong>Style of Music</strong> → Definisce genere, strumenti, mood, era</li>
+            <li><strong>Lyrics</strong> → Il testo della canzone con meta tags per controllare la struttura</li>
+          </ul>
+        </div>
+
+        <div class="guide-section">
+          <h3>📝 Regole d'Oro per i Lyrics</h3>
+          <ul>
+            <li>✅ Mantieni le sezioni a <strong>4 righe</strong> (Suno funziona meglio così)</li>
+            <li>✅ Metti i meta tags <strong>all'inizio</strong> di ogni sezione</li>
+            <li>✅ Usa <strong>parole semplici e chiare</strong> per una pronuncia migliore</li>
+            <li>✅ Evita parole troppo lunghe o complesse</li>
+            <li>✅ Usa <code>[Instrumental]</code> per le sezioni senza voce</li>
+            <li>✅ Usa <code>[End]</code> o <code>[Coda]</code> per terminare la canzone</li>
+            <li>❌ NON superare 6+ meta tags per sezione</li>
+            <li>❌ NON mischiare generi incompatibili nei tag</li>
+          </ul>
+        </div>
+
+        <div class="guide-section">
+          <h3>🎛️ Formula Style Prompt</h3>
+          <p>Segui questa struttura per lo Style Prompt:</p>
+          <div class="formula-box">
+            <code>decade, genere, sub-genere, paese, tipo voce, descrittori musicali</code>
+          </div>
+          <p><strong>Esempio:</strong></p>
+          <div class="example-box">
+            <code>2010s, indie pop, rock, USA, female vocals, catchy hooks, melodic, polished production, rhythmic</code>
+          </div>
+        </div>
+
+        <div class="guide-section">
+          <h3>🏷️ Posizionamento Meta Tags</h3>
+          <div class="comparison">
+            <div class="compare-bad">
+              <h4>❌ Sbagliato</h4>
+              <pre>[Chorus]
+We light it up like fire</pre>
+            </div>
+            <div class="compare-good">
+              <h4>✅ Corretto</h4>
+              <pre>[Chorus | anthemic chorus | stacked harmonies | modern pop polish]
+We light it up like fire</pre>
+            </div>
+          </div>
+        </div>
+
+        <div class="guide-section">
+          <h3>🔑 Trucchi Pro dalla Community</h3>
+          <ul>
+            <li>📌 Aggiungi <code>[Produced by XXX]</code> nei lyrics per influenzare lo stile di produzione</li>
+            <li>📌 Usa tag di era come "80s", "90s" per ancorare il sound</li>
+            <li>📌 Per realismo aggiungi: <em>tape saturation, analog warmth, close mic presence, natural dynamics</em></li>
+            <li>📌 Per vocal chiare usa: <em>clear vocals, high-definition audio, wide stereo</em></li>
+            <li>📌 Stile Formula: Core element → Genere/Era → Tone → Effects</li>
+            <li>📌 Testa <strong>una modifica alla volta</strong> per capire cosa funziona</li>
+            <li>📌 Le parentesi quadre [] possono essere "cantate" - usa formato metadata non frasi</li>
+          </ul>
+        </div>
+
+        <div class="guide-section">
+          <h3>⚠️ Errori Comuni</h3>
+          <ul>
+            <li>🚫 Troppi tag → Suno si confonde (max 4-5 per sezione)</li>
+            <li>🚫 Tag generici → "guitar" vs <strong>"60s jangly guitar rhythm"</strong></li>
+            <li>🚫 Mix generi incompatibili → [808 sub bass] + [pedal steel guitar]</li>
+            <li>🚫 Lyrics box vuoto → Il prompt style potrebbe essere "cantato"</li>
+            <li>🚫 Sezioni troppo lunghe → Più di 4-5 righe confonde il modello</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ TAB: SAVED ============ -->
+    <section id="tab-saved" class="tab-content">
+      <div class="card">
+        <h2 class="card-title">💾 Testi Salvati</h2>
+        <div id="savedList" class="saved-list">
+          <p class="empty-state">Nessun testo salvato ancora. Genera un testo e salvalo!</p>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Toast notification -->
+  <div id="toast" class="toast hidden"></div>
+
+  <!-- Footer -->
+  <footer class="app-footer">
+    <p>Suno Lyrics AI Generator • PWA Installabile 📲</p>
+  </footer>
+
+  <script src="js/suno-knowledge.js"></script>
+  <script src="js/gemini-service.js"></script>
+  <script src="js/lyrics-engine.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
