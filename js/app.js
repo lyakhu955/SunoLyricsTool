@@ -135,6 +135,9 @@ class SunoLyricsApp {
     regenerateBtn?.addEventListener('click', () => this.handleGenerate());
     saveBtn?.addEventListener('click', () => this.handleSave());
     shareBtn?.addEventListener('click', () => this.handleShare());
+
+    const openSunoBtn = document.getElementById('openSunoBtn');
+    openSunoBtn?.addEventListener('click', () => this.handleOpenSuno());
   }
 
   async handleGenerate() {
@@ -283,6 +286,32 @@ class SunoLyricsApp {
     } else {
       this.copyToClipboard(text);
       this.showToast('📋 Testo copiato negli appunti!', 'success');
+    }
+  }
+
+  // ===== OPEN SUNO =====
+  handleOpenSuno() {
+    if (!this.currentResult) return;
+
+    // Copy both style prompt and lyrics to clipboard
+    const text = `STYLE PROMPT:\n${this.currentResult.stylePrompt}\n\nLYRICS:\n${this.currentResult.lyrics}`;
+    this.copyToClipboard(text);
+    this.showToast('📋 Copiato! Si apre Suno...', 'success', 3000);
+
+    // Try Android intent to open Suno app directly
+    // Suno app package: com.suno.android
+    const sunoAppUrl = 'intent://create#Intent;package=com.suno.android;scheme=https;S.browser_fallback_url=https%3A%2F%2Fsuno.com%2Fcreate;end';
+    const sunoWebUrl = 'https://suno.com/create';
+
+    // Detect if on Android
+    const isAndroid = /android/i.test(navigator.userAgent);
+
+    if (isAndroid) {
+      // Try to open the Suno app via intent
+      window.location.href = sunoAppUrl;
+    } else {
+      // On iOS/desktop, open web version
+      window.open(sunoWebUrl, '_blank');
     }
   }
 
