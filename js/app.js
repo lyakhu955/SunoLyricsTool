@@ -176,7 +176,9 @@ class SunoLyricsApp {
             tips: tips,
             source: 'gemini'
           };
-          this.showToast('🤖 Testo generato con Gemini AI!', 'success');
+          const usedModel = this.gemini._lastModelUsed || this.gemini.getModel();
+          const modelLabel = usedModel.includes('pro') ? 'Pro' : 'Flash';
+          this.showToast(`🤖 Generato con Gemini ${modelLabel}!`, 'success');
         } catch (aiErr) {
           console.warn('Gemini AI error:', aiErr.message);
           if (this.useFallback) {

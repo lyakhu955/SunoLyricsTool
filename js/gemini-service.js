@@ -7,7 +7,7 @@
 class GeminiService {
   constructor() {
     this.apiKey = localStorage.getItem('sunoLyrics_geminiKey') || '';
-    this.model = localStorage.getItem('sunoLyrics_geminiModel') || 'gemini-2.5-pro';
+    this.model = localStorage.getItem('sunoLyrics_geminiModel') || 'gemini-2.5-flash';
     this.baseUrl = 'https://generativelanguage.googleapis.com/v1beta/models';
   }
 
@@ -160,25 +160,40 @@ FORMATO OUTPUT RICHIESTO:
 
     try {
       let response;
-      let retries = 0;
-      const maxRetries = 2;
+      let currentModel = this.model;
+      const fallbackModel = 'gemini-2.5-flash';
 
-      while (retries <= maxRetries) {
-        response = await fetch(url, {
+      // Try primary model first
+      response = await fetch(`${this.baseUrl}/${currentModel}:generateContent?key=${this.apiKey}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body)
+      });
+
+      // If rate limited on primary model, try fallback
+      if (response.status === 429 && currentModel !== fallbackModel) {
+        console.log(`${currentModel} rate limited, falling back to ${fallbackModel}...`);
+        currentModel = fallbackModel;
+        response = await fetch(`${this.baseUrl}/${currentModel}:generateContent?key=${this.apiKey}`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(body)
         });
-
-        if (response.status === 429 && retries < maxRetries) {
-          retries++;
-          const waitTime = retries * 3000; // 3s, 6s
-          console.log(`Rate limited, retry ${retries}/${maxRetries} in ${waitTime/1000}s...`);
-          await new Promise(r => setTimeout(r, waitTime));
-          continue;
-        }
-        break;
       }
+
+      // If still rate limited, retry once after wait
+      if (response.status === 429) {
+        console.log('Still rate limited, waiting 5s and retrying...');
+        await new Promise(r => setTimeout(r, 5000));
+        response = await fetch(`${this.baseUrl}/${currentModel}:generateContent?key=${this.apiKey}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(body)
+        });
+      }
+
+      // Track which model actually worked
+      this._lastModelUsed = currentModel;
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
@@ -191,7 +206,7 @@ FORMATO OUTPUT RICHIESTO:
           throw new Error('API key non valida o non autorizzata. Controlla la chiave nelle Impostazioni.');
         }
         if (response.status === 429) {
-          throw new Error('Troppe richieste. Aspetta 30-60 secondi e riprova.');
+          throw new Error('Tutti i modelli sovraccarichi. Aspetta 1 minuto e riprova.');
         }
         throw new Error(`Errore Gemini: ${errorMsg}`);
       }
