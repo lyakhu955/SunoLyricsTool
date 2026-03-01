@@ -472,10 +472,14 @@ class SunoLyricsApp {
     const toggleBtn = document.getElementById('toggleKeyVisibility');
     const fallbackCheckbox = document.getElementById('useAiFallback');
     const apiKeyInput = document.getElementById('geminiApiKey');
+    const modelSelect = document.getElementById('geminiModel');
 
-    // Load saved key
+    // Load saved settings
     if (this.gemini.hasApiKey()) {
       apiKeyInput.value = this.gemini.getApiKey();
+    }
+    if (modelSelect) {
+      modelSelect.value = this.gemini.getModel();
     }
     fallbackCheckbox.checked = this.useFallback;
 
@@ -491,14 +495,18 @@ class SunoLyricsApp {
       apiKeyInput.type = apiKeyInput.type === 'password' ? 'text' : 'password';
     });
 
-    // Save API key
+    // Save API key + model
     saveBtn?.addEventListener('click', () => {
       const key = apiKeyInput.value.trim();
       this.gemini.setApiKey(key);
+      if (modelSelect) {
+        this.gemini.setModel(modelSelect.value);
+      }
       this.updateAIStatus();
       this.updateSettingsStatus();
       if (key) {
-        this.showToast('🔑 API Key salvata!', 'success');
+        const modelName = modelSelect?.value?.includes('pro') ? 'Pro' : 'Flash';
+        this.showToast(`🔑 Salvato! Modello: Gemini ${modelName}`, 'success');
       } else {
         this.showToast('🔑 API Key rimossa. Modalità template attiva.', 'info');
       }
@@ -580,7 +588,8 @@ class SunoLyricsApp {
 
     if (this.gemini.hasApiKey()) {
       dot.className = 'status-dot online';
-      text.textContent = '🤖 Gemini AI Attivo';
+      const modelLabel = this.gemini.getModel().includes('pro') ? 'Pro' : 'Flash';
+      text.textContent = `🤖 Gemini ${modelLabel} Attivo`;
       statusBar.classList.add('active');
     } else {
       dot.className = 'status-dot offline';

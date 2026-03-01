@@ -7,7 +7,7 @@
 class GeminiService {
   constructor() {
     this.apiKey = localStorage.getItem('sunoLyrics_geminiKey') || '';
-    this.model = 'gemini-2.5-flash';
+    this.model = localStorage.getItem('sunoLyrics_geminiModel') || 'gemini-2.5-pro';
     this.baseUrl = 'https://generativelanguage.googleapis.com/v1beta/models';
   }
 
@@ -18,6 +18,15 @@ class GeminiService {
 
   getApiKey() {
     return this.apiKey;
+  }
+
+  setModel(model) {
+    this.model = model;
+    localStorage.setItem('sunoLyrics_geminiModel', model);
+  }
+
+  getModel() {
+    return this.model;
   }
 
   hasApiKey() {

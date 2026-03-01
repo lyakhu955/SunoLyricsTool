@@ -49,7 +49,15 @@
             <span class="status-text">API key non configurata</span>
           </div>
         </div>
-        <button id="saveApiKey" class="btn-primary" style="width:100%">💾 Salva API Key</button>
+        <div class="form-group">
+          <label for="geminiModel">🧠 Modello AI</label>
+          <select id="geminiModel" class="input">
+            <option value="gemini-2.5-pro">Gemini 2.5 Pro — Massima qualità (consigliato con Plus)</option>
+            <option value="gemini-2.5-flash">Gemini 2.5 Flash — Veloce e smart</option>
+          </select>
+          <small class="form-hint">Pro: testi più creativi (~15s) • Flash: più veloce (~3s)</small>
+        </div>
+        <button id="saveApiKey" class="btn-primary" style="width:100%">💾 Salva Impostazioni</button>
         <button id="testApiKey" class="btn-secondary" style="width:100%; margin-top:8px">🧪 Testa Connessione</button>
         <hr class="modal-divider">
         <div class="form-group">
