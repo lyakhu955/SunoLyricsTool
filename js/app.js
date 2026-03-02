@@ -107,19 +107,22 @@ class SunoLyricsApp {
     return window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
   }
 
-  // ===== TABS =====
+  // ===== TABS (BOTTOM NAV) =====
   setupTabs() {
-    const tabs = document.querySelectorAll('.tab');
-    tabs.forEach(tab => {
-      tab.addEventListener('click', () => {
-        // Remove active from all tabs and contents
-        tabs.forEach(t => t.classList.remove('active'));
+    const navItems = document.querySelectorAll('.bottom-nav-item');
+    navItems.forEach(item => {
+      item.addEventListener('click', () => {
+        // Remove active from all nav items and tab contents
+        navItems.forEach(n => n.classList.remove('active'));
         document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
 
-        // Activate clicked tab
-        tab.classList.add('active');
-        const tabId = tab.dataset.tab;
+        // Activate clicked item
+        item.classList.add('active');
+        const tabId = item.dataset.tab;
         document.getElementById(`tab-${tabId}`).classList.add('active');
+
+        // Scroll to top on tab switch
+        window.scrollTo({ top: 0, behavior: 'smooth' });
       });
     });
   }
