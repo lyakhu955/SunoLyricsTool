@@ -1452,40 +1452,6 @@ select.input {
   font-size: 14px;
 }
 
-/* ===== OWN KEY SECTION ===== */
-.own-key-section {
-  border: none;
-}
-
-.own-key-toggle {
-  cursor: pointer;
-  color: var(--text-muted);
-  font-size: 13px;
-  padding: 8px 0;
-  list-style: none;
-  transition: var(--transition);
-}
-
-.own-key-toggle:hover {
-  color: var(--text-secondary);
-}
-
-.own-key-toggle::-webkit-details-marker {
-  display: none;
-}
-
-.own-key-toggle::before {
-  content: '▸ ';
-}
-
-details[open] .own-key-toggle::before {
-  content: '▾ ';
-}
-
-.own-key-content {
-  padding-top: 12px;
-}
-
 /* ===== ADMIN PANEL ===== */
 .modal-admin {
   max-width: 500px;

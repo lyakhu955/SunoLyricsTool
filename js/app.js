@@ -501,16 +501,6 @@ class SunoLyricsApp {
     const settingsBtn = document.getElementById('settingsBtn');
     const modal = document.getElementById('settingsModal');
     const closeBtn = document.getElementById('closeSettings');
-    const saveBtn = document.getElementById('saveApiKey');
-    const testBtn = document.getElementById('testApiKey');
-    const toggleBtn = document.getElementById('toggleKeyVisibility');
-    const apiKeyInput = document.getElementById('geminiApiKey');
-
-    // Load saved settings
-    if (this.gemini.hasApiKey()) {
-      apiKeyInput.value = this.gemini.getApiKey();
-    }
-
 
     // Open / Close
     settingsBtn?.addEventListener('click', () => {
@@ -570,84 +560,6 @@ class SunoLyricsApp {
     });
 
     this.updatePremiumUI();
-
-    // Toggle visibility
-    toggleBtn?.addEventListener('click', () => {
-      apiKeyInput.type = apiKeyInput.type === 'password' ? 'text' : 'password';
-    });
-
-    // Save API key
-    saveBtn?.addEventListener('click', () => {
-      const key = apiKeyInput.value.trim();
-      this.gemini.setApiKey(key);
-      this.updateAIStatus();
-      this.updateSettingsStatus();
-      if (key) {
-        this.showToast('🔑 API Key salvata! Gemini Flash attivo.', 'success');
-      } else {
-        this.showToast('🔑 API Key rimossa.', 'info');
-      }
-    });
-
-    // Test API key
-    testBtn?.addEventListener('click', async () => {
-      const key = apiKeyInput.value.trim();
-      if (!key) {
-        this.showToast('❌ Inserisci una API key prima', 'error');
-        return;
-      }
-
-      if (!key.startsWith('AIza')) {
-        this.showToast('❌ Formato API key non valido. Deve iniziare con "AIza..."', 'error');
-        return;
-      }
-
-      testBtn.disabled = true;
-      testBtn.textContent = '⏳ Test in corso...';
-
-      // Temporarily set key for test
-      this.gemini.setApiKey(key);
-
-      try {
-        // Simple test: list models to verify key
-        const testUrl = `https://generativelanguage.googleapis.com/v1beta/models?key=${key}`;
-        const testResp = await fetch(testUrl);
-        
-        if (!testResp.ok) {
-          if (testResp.status === 400 || testResp.status === 403) {
-            throw new Error('API key non valida');
-          }
-          if (testResp.status === 429) {
-            throw new Error('Limite richieste raggiunto, ma la key sembra valida. Aspetta 1 minuto.');
-          }
-          throw new Error(`Errore HTTP ${testResp.status}`);
-        }
-
-        const data = await testResp.json();
-        const modelCount = data?.models?.length || 0;
-        this.showToast(`✅ Connessione OK! ${modelCount} modelli disponibili.`, 'success', 4000);
-        this.updateAIStatus();
-        this.updateSettingsStatus();
-
-      } catch (err) {
-        const msg = err.message;
-        if (msg.includes('valida')) {
-          this.showToast(`❌ ${msg}`, 'error', 5000);
-          this.updateSettingsStatus(false);
-        } else if (msg.includes('Limite') || msg.includes('429')) {
-          // Key is probably valid, just rate limited
-          this.showToast(`⚠️ ${msg}`, 'warning', 5000);
-          this.updateAIStatus();
-          this.updateSettingsStatus();
-        } else {
-          this.showToast(`❌ Test fallito: ${msg}`, 'error', 5000);
-          this.updateSettingsStatus(false);
-        }
-      }
-
-      testBtn.disabled = false;
-      testBtn.textContent = '🧪 Testa Connessione';
-    });
 
     // ===== ADMIN ACCESS =====
     const adminAccessBtn = document.getElementById('adminAccessBtn');
@@ -851,25 +763,6 @@ class SunoLyricsApp {
       premiumStatus?.classList.add('hidden');
       if (premiumPrice) premiumPrice.style.display = '';
       if (premiumFeatures) premiumFeatures.style.display = '';
-    }
-  }
-
-  updateSettingsStatus(connected) {
-    const statusEl = document.getElementById('apiKeyStatus');
-    if (!statusEl) return;
-
-    const dot = statusEl.querySelector('.status-dot');
-    const text = statusEl.querySelector('.status-text');
-
-    if (connected === false) {
-      dot.className = 'status-dot error';
-      text.textContent = 'Connessione fallita - controlla la chiave';
-    } else if (this.gemini.hasApiKey()) {
-      dot.className = 'status-dot online';
-      text.textContent = 'API key configurata';
-    } else {
-      dot.className = 'status-dot offline';
-      text.textContent = 'API key non configurata';
     }
   }
 

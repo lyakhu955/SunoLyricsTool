@@ -6,15 +6,10 @@
 
 class GeminiService {
   constructor() {
-    this.apiKey = localStorage.getItem('sunoLyrics_geminiKey') || '';
     this.model = 'gemini-2.5-flash';
     this.baseUrl = 'https://generativelanguage.googleapis.com/v1beta/models';
     this.isPremium = localStorage.getItem('sunoLyrics_premium') === 'true';
-
-    // If premium is active, use the built-in key
-    if (this.isPremium && !this.apiKey) {
-      this.apiKey = this._getPremiumKey();
-    }
+    this.apiKey = this.isPremium ? this._getPremiumKey() : '';
   }
 
   // Obfuscated premium key — not stored in plain text
@@ -105,21 +100,11 @@ class GeminiService {
   deactivatePremium() {
     this.isPremium = false;
     localStorage.removeItem('sunoLyrics_premium');
-    const ownKey = localStorage.getItem('sunoLyrics_geminiKey');
-    this.apiKey = ownKey || '';
+    this.apiKey = '';
   }
 
   getIsPremium() {
     return this.isPremium;
-  }
-
-  setApiKey(key) {
-    this.apiKey = key;
-    localStorage.setItem('sunoLyrics_geminiKey', key);
-  }
-
-  getApiKey() {
-    return this.apiKey;
   }
 
   getModel() {
