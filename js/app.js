@@ -171,13 +171,13 @@ class SunoLyricsApp {
 
     // Check if AI is available
     if (!this.gemini.hasApiKey()) {
-      this.showToast('❌ AI non configurata. Vai in Impostazioni per attivare Premium o inserire una API key.', 'error', 5000);
+      this.showToast('❌ AI non configurata. Attiva Premium per generare con Leio AI.', 'error', 5000);
       return;
     }
 
     btn.classList.add('loading');
     btn.disabled = true;
-    btn.innerHTML = '<span class="btn-icon">🤖</span> Gemini AI sta scrivendo...';
+    btn.innerHTML = '<span class="btn-icon">🤖</span> Leio AI sta scrivendo...';
 
     const options = {
       theme: document.getElementById('songTheme').value || 'vita e sentimenti',
@@ -203,7 +203,7 @@ class SunoLyricsApp {
         source: 'gemini'
       };
 
-      this.showToast('🤖 Generato con Gemini Flash!', 'success');
+      this.showToast('🤖 Generato con Leio AI!', 'success');
 
       this.displayResults(result, options);
 
@@ -230,7 +230,7 @@ class SunoLyricsApp {
     lyricsEl.innerHTML = this.highlightLyrics(result.lyrics);
 
     // Source badge
-    lyricsEl.insertAdjacentHTML('afterbegin', '<span class="source-badge gemini">🤖 Gemini AI</span><br><br>');
+    lyricsEl.insertAdjacentHTML('afterbegin', '<span class="source-badge gemini">🤖 Leio AI</span><br><br>');
 
     // Tips
     const tipsEl = document.getElementById('tipsOutput');
@@ -727,7 +727,7 @@ class SunoLyricsApp {
     if (this.gemini.hasApiKey()) {
       dot.className = 'status-dot online';
       const premiumLabel = this.gemini.getIsPremium() ? ' 👑' : '';
-      text.textContent = `🤖 Gemini Flash${premiumLabel} Attivo`;
+      text.textContent = `🤖 Leio AI${premiumLabel} Attivo`;
       statusBar.classList.add('active');
     } else {
       dot.className = 'status-dot offline';
