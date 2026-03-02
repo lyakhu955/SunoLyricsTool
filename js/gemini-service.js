@@ -9,6 +9,44 @@ class GeminiService {
     this.apiKey = localStorage.getItem('sunoLyrics_geminiKey') || '';
     this.model = localStorage.getItem('sunoLyrics_geminiModel') || 'gemini-2.5-flash';
     this.baseUrl = 'https://generativelanguage.googleapis.com/v1beta/models';
+    this.isPremium = localStorage.getItem('sunoLyrics_premium') === 'true';
+
+    // If premium is active, use the built-in key
+    if (this.isPremium && !this.apiKey) {
+      this.apiKey = this._getPremiumKey();
+    }
+  }
+
+  // Obfuscated premium key — not stored in plain text
+  _getPremiumKey() {
+    const parts = ['QUl6', 'YVN5', 'QmVx', 'RzJ0', 'VEhN', 'ZzZv', 'SE9v', 'WEY3', 'TjB2', 'R3d1', 'RjVf', 'TTdM', 'dTd3'];
+    return atob(parts.join(''));
+  }
+
+  activatePremium(code) {
+    // Valid activation codes (you can change these anytime)
+    const validCodes = ['SUNO2025', 'LYRICS-PRO', 'LEONID-AI'];
+    const normalizedCode = code.trim().toUpperCase();
+
+    if (validCodes.includes(normalizedCode)) {
+      this.isPremium = true;
+      localStorage.setItem('sunoLyrics_premium', 'true');
+      this.apiKey = this._getPremiumKey();
+      return true;
+    }
+    return false;
+  }
+
+  deactivatePremium() {
+    this.isPremium = false;
+    localStorage.removeItem('sunoLyrics_premium');
+    // Keep user's own key if they have one, otherwise clear
+    const ownKey = localStorage.getItem('sunoLyrics_geminiKey');
+    this.apiKey = ownKey || '';
+  }
+
+  getIsPremium() {
+    return this.isPremium;
   }
 
   setApiKey(key) {

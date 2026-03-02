@@ -515,11 +515,59 @@ class SunoLyricsApp {
     fallbackCheckbox.checked = this.useFallback;
 
     // Open / Close
-    settingsBtn?.addEventListener('click', () => modal.classList.remove('hidden'));
+    settingsBtn?.addEventListener('click', () => {
+      modal.classList.remove('hidden');
+      this.updatePremiumUI();
+    });
     closeBtn?.addEventListener('click', () => modal.classList.add('hidden'));
     modal?.addEventListener('click', (e) => {
       if (e.target === modal) modal.classList.add('hidden');
     });
+
+    // ===== PREMIUM SYSTEM =====
+    const premiumUnlockBtn = document.getElementById('premiumUnlockBtn');
+    const premiumCodeSection = document.getElementById('premiumCodeSection');
+    const premiumCodeInput = document.getElementById('premiumCode');
+    const activatePremiumBtn = document.getElementById('activatePremium');
+
+    premiumUnlockBtn?.addEventListener('click', () => {
+      if (this.gemini.getIsPremium()) {
+        // Already premium — deactivate
+        this.gemini.deactivatePremium();
+        this.updatePremiumUI();
+        this.updateAIStatus();
+        this.showToast('Premium disattivato', 'info');
+        return;
+      }
+      // Show code input OR open WhatsApp
+      if (premiumCodeSection.classList.contains('hidden')) {
+        premiumCodeSection.classList.remove('hidden');
+        // Open WhatsApp with pre-filled message
+        const phone = '393885765498'; // Your Italian number without +
+        const message = encodeURIComponent(
+          '👑 Ciao Leonid! Vorrei attivare AI Premium su Suno Lyrics AI Generator.\n\nVorrei ricevere il codice di attivazione. Come posso pagare?'
+        );
+        window.open(`https://wa.me/${phone}?text=${message}`, '_blank');
+      }
+    });
+
+    activatePremiumBtn?.addEventListener('click', () => {
+      const code = premiumCodeInput?.value?.trim();
+      if (!code) {
+        this.showToast('❌ Inserisci il codice di attivazione', 'error');
+        return;
+      }
+
+      if (this.gemini.activatePremium(code)) {
+        this.showToast('👑 Premium attivato! Ora puoi generare con AI!', 'success', 5000);
+        this.updatePremiumUI();
+        this.updateAIStatus();
+      } else {
+        this.showToast('❌ Codice non valido. Contatta Leonid via WhatsApp.', 'error', 4000);
+      }
+    });
+
+    this.updatePremiumUI();
 
     // Toggle visibility
     toggleBtn?.addEventListener('click', () => {
@@ -620,12 +668,36 @@ class SunoLyricsApp {
     if (this.gemini.hasApiKey()) {
       dot.className = 'status-dot online';
       const modelLabel = this.gemini.getModel().includes('pro') ? 'Pro' : 'Flash';
-      text.textContent = `🤖 Gemini ${modelLabel} Attivo`;
+      const premiumLabel = this.gemini.getIsPremium() ? ' 👑' : '';
+      text.textContent = `🤖 Gemini ${modelLabel}${premiumLabel} Attivo`;
       statusBar.classList.add('active');
     } else {
       dot.className = 'status-dot offline';
       text.textContent = '📝 Modalità Template';
       statusBar.classList.remove('active');
+    }
+  }
+
+  updatePremiumUI() {
+    const premiumBtn = document.getElementById('premiumUnlockBtn');
+    const premiumStatus = document.getElementById('premiumStatus');
+    const premiumCodeSection = document.getElementById('premiumCodeSection');
+    const premiumPrice = document.querySelector('.premium-price');
+    const premiumFeatures = document.querySelector('.premium-features');
+
+    if (this.gemini.getIsPremium()) {
+      premiumBtn.textContent = '🚫 Disattiva Premium';
+      premiumBtn.classList.add('deactivate');
+      premiumStatus?.classList.remove('hidden');
+      premiumCodeSection?.classList.add('hidden');
+      if (premiumPrice) premiumPrice.style.display = 'none';
+      if (premiumFeatures) premiumFeatures.style.display = 'none';
+    } else {
+      premiumBtn.textContent = '👑 Sblocca AI Premium';
+      premiumBtn.classList.remove('deactivate');
+      premiumStatus?.classList.add('hidden');
+      if (premiumPrice) premiumPrice.style.display = '';
+      if (premiumFeatures) premiumFeatures.style.display = '';
     }
   }
 

@@ -35,20 +35,65 @@
         <button id="closeSettings" class="btn-dismiss">✕</button>
       </div>
       <div class="modal-body">
-        <div class="form-group">
-          <label for="geminiApiKey">🔑 API Key Google Gemini</label>
-          <div class="input-with-btn">
-            <input type="password" id="geminiApiKey" placeholder="Inserisci la tua API key..." class="input">
-            <button id="toggleKeyVisibility" class="btn-icon-small" title="Mostra/Nascondi">👁️</button>
+
+        <!-- PREMIUM SECTION -->
+        <div class="premium-box" id="premiumSection">
+          <div class="premium-header">
+            <span class="premium-icon">👑</span>
+            <h3>AI Premium</h3>
           </div>
-          <small class="form-hint">Ottieni la chiave da <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener">Google AI Studio</a></small>
-        </div>
-        <div class="form-group">
-          <div id="apiKeyStatus" class="api-status">
-            <span class="status-dot offline"></span>
-            <span class="status-text">API key non configurata</span>
+          <p class="premium-desc">Sblocca la generazione AI illimitata con Gemini. Nessuna API key necessaria!</p>
+          <div class="premium-price">
+            <span class="price-tag">€4.99</span>
+            <span class="price-period">/ mese</span>
+          </div>
+          <ul class="premium-features">
+            <li>✅ Generazione AI illimitata con Gemini</li>
+            <li>✅ Modelli Pro e Flash disponibili</li>
+            <li>✅ Nessuna configurazione necessaria</li>
+            <li>✅ Supporto diretto via WhatsApp</li>
+          </ul>
+          <button id="premiumUnlockBtn" class="btn-premium">👑 Sblocca AI Premium</button>
+          <div id="premiumCodeSection" class="premium-code-section hidden">
+            <label for="premiumCode">🔓 Codice di attivazione</label>
+            <div class="input-with-btn">
+              <input type="text" id="premiumCode" placeholder="Inserisci il codice ricevuto..." class="input">
+              <button id="activatePremium" class="btn-icon-small" title="Attiva">✓</button>
+            </div>
+            <small class="form-hint">Inserisci il codice ricevuto dopo il pagamento</small>
+          </div>
+          <div id="premiumStatus" class="premium-status hidden">
+            <span class="status-dot online"></span>
+            <span>Premium attivo! 👑</span>
           </div>
         </div>
+
+        <hr class="modal-divider">
+
+        <!-- OWN KEY SECTION -->
+        <details class="own-key-section">
+          <summary class="own-key-toggle">🔧 Usa la tua API Key (avanzato)</summary>
+          <div class="own-key-content">
+            <div class="form-group">
+              <label for="geminiApiKey">🔑 API Key Google Gemini</label>
+              <div class="input-with-btn">
+                <input type="password" id="geminiApiKey" placeholder="Inserisci la tua API key..." class="input">
+                <button id="toggleKeyVisibility" class="btn-icon-small" title="Mostra/Nascondi">👁️</button>
+              </div>
+              <small class="form-hint">Ottieni la chiave da <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener">Google AI Studio</a></small>
+            </div>
+            <div class="form-group">
+              <div id="apiKeyStatus" class="api-status">
+                <span class="status-dot offline"></span>
+                <span class="status-text">API key non configurata</span>
+              </div>
+            </div>
+          </div>
+        </details>
+
+        <hr class="modal-divider">
+
+        <!-- MODEL + OPTIONS -->
         <div class="form-group">
           <label for="geminiModel">🧠 Modello AI</label>
           <select id="geminiModel" class="input">
