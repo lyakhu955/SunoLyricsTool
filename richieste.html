@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Richieste - Suno Lyrics AI Generator</title>
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/legal.css">
+</head>
+<body>
+  <div class="legal-page">
+    <a href="index.html" class="legal-back">← Torna all'app</a>
+    <h1>✉️ Richieste Personalizzate</h1>
+    <p class="legal-updated">Prezzo fisso: <strong>€15 a canzone</strong> — canzone professionale, rifinita in modalità studio.</p>
+
+    <section>
+      <h2>Come funziona</h2>
+      <p>Offro un servizio di creazione testi musicali professionali su richiesta. Dopo la generazione iniziale (AI) procedo con una fase di editing manuale in modalità studio per correggere imperfezioni, migliorare struttura, coerenza, metriche e adattare il testo alla voce/produzione desiderata.</p>
+      <p>Il prezzo è fisso a €15 per ogni canzone richiesta e include:</p>
+      <ul>
+        <li>Generazione del testo ottimizzato per Suno</li>
+        <li>Editing professionale (correzioni, metri, rime, chiarezza)</li>
+        <li>Una revisione gratuita su richiesta</li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>Ordina la tua canzone</h2>
+      <form id="requestForm" class="request-form">
+        <div class="form-group">
+          <label for="reqName">Nome</label>
+          <input id="reqName" class="input" placeholder="Il tuo nome" required>
+        </div>
+        <div class="form-group">
+          <label for="reqEmail">Email</label>
+          <input id="reqEmail" class="input" type="email" placeholder="la-tua-email@example.com" required>
+        </div>
+        <div class="form-group">
+          <label for="reqTheme">Tema / Argomento</label>
+          <input id="reqTheme" class="input" placeholder="es. amore, viaggio, nostalgia" required>
+        </div>
+        <div class="form-group">
+          <label for="reqGenre">Genere</label>
+          <select id="reqGenre" class="input">
+            <option>Pop</option>
+            <option>Rock</option>
+            <option>Hip Hop</option>
+            <option>Trap</option>
+            <option>R&B</option>
+            <option>EDM</option>
+            <option>Altro...</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="reqMood">Mood / Atmosfera</label>
+          <input id="reqMood" class="input" placeholder="es. energico, malinconico, romantico">
+        </div>
+        <div class="form-group">
+          <label for="reqDetails">Dettagli extra / Brief</label>
+          <textarea id="reqDetails" class="input textarea" rows="4" placeholder="Parlami di voce, riferimenti, lingua, durata, note per la produzione..."></textarea>
+        </div>
+
+        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+          <button id="sendRequest" type="button" class="btn-primary">✉️ Richiedi ora via WhatsApp</button>
+          <small class="form-hint">Riceverai istruzioni per il pagamento e la consegna dopo il contatto via WhatsApp.</small>
+        </div>
+      </form>
+
+      <p style="margin-top:18px;color:#a5a5c7">Nota: il servizio è gestito direttamente dal titolare; il pagamento e la consegna vengono gestiti manualmente via WhatsApp. Non memorizziamo i testi delle tue richieste sui server.</p>
+    </section>
+
+    <div class="legal-footer">
+      <p>© 2025 Leonid Lyakhu — Suno Lyrics AI Generator</p>
+      <p><a href="index.html">🎵 Torna all'app</a> · <a href="privacy.html">🔒 Privacy Policy</a> · <a href="cookie.html">🍪 Cookie Policy</a> · <a href="terms.html">📋 Termini</a></p>
+    </div>
+  </div>
+
+  <script>
+    document.getElementById('sendRequest')?.addEventListener('click', () => {
+      const name = document.getElementById('reqName').value.trim();
+      const email = document.getElementById('reqEmail').value.trim();
+      const theme = document.getElementById('reqTheme').value.trim();
+      const genre = document.getElementById('reqGenre').value;
+      const mood = document.getElementById('reqMood').value.trim();
+      const details = document.getElementById('reqDetails').value.trim();
+
+      if (!name || !email || !theme) {
+        alert('Per favore compila almeno Nome, Email e Tema della canzone.');
+        return;
+      }
+
+      const phone = '393519177475'; // numero internazionale senza +
+      const msg = encodeURIComponent(
+        `Richiesta canzone\nNome: ${name}\nEmail: ${email}\nTema: ${theme}\nGenere: ${genre}\nMood: ${mood}\nDettagli: ${details}\nPrezzo: €15`);
+      window.open(`https://wa.me/${phone}?text=${msg}`, '_blank');
+    });
+  </script>
+</body>
+</html>
