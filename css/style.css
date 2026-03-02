@@ -1440,7 +1440,6 @@ select.input {
 .premium-status {
   display: flex;
   align-items: center;
-  justify-content: center;
   gap: 8px;
   margin-top: 12px;
   padding: 10px;
@@ -1450,6 +1449,23 @@ select.input {
   color: var(--success);
   font-weight: 700;
   font-size: 14px;
+}
+
+.premium-status-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.premium-expiry {
+  font-weight: 400;
+  font-size: 11px;
+  color: rgba(16, 185, 129, 0.8);
+}
+
+.premium-expiry.expiring {
+  color: #f59e0b;
+  font-weight: 600;
 }
 
 /* ===== ADMIN PANEL ===== */

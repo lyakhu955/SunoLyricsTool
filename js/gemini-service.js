@@ -8,7 +8,12 @@ class GeminiService {
   constructor() {
     this.model = 'gemini-2.5-flash';
     this.baseUrl = 'https://generativelanguage.googleapis.com/v1beta/models';
+    this.PREMIUM_DURATION_MS = 30 * 24 * 60 * 60 * 1000; // 30 days
     this.isPremium = localStorage.getItem('sunoLyrics_premium') === 'true';
+    // Check if premium has expired
+    if (this.isPremium) {
+      this._checkPremiumExpiry();
+    }
     this.apiKey = this.isPremium ? this._getPremiumKey() : '';
     // Firebase sync instance (set from app.js after FirebaseSync is created)
     this.firebase = null;
@@ -89,6 +94,37 @@ class GeminiService {
     return codes;
   }
 
+  // --- PREMIUM EXPIRY CHECK ---
+  _checkPremiumExpiry() {
+    const activatedAt = parseInt(localStorage.getItem('sunoLyrics_premiumActivatedAt') || '0');
+    if (!activatedAt) {
+      // Legacy activation without timestamp — set it now (gives them 30 days from now)
+      localStorage.setItem('sunoLyrics_premiumActivatedAt', Date.now().toString());
+      return;
+    }
+    const elapsed = Date.now() - activatedAt;
+    if (elapsed >= this.PREMIUM_DURATION_MS) {
+      // Expired!
+      console.log('⏰ Premium expired, deactivating...');
+      this.deactivatePremium();
+    }
+  }
+
+  getPremiumDaysLeft() {
+    if (!this.isPremium) return 0;
+    const activatedAt = parseInt(localStorage.getItem('sunoLyrics_premiumActivatedAt') || '0');
+    if (!activatedAt) return 30;
+    const elapsed = Date.now() - activatedAt;
+    const remaining = this.PREMIUM_DURATION_MS - elapsed;
+    return Math.max(0, Math.ceil(remaining / (24 * 60 * 60 * 1000)));
+  }
+
+  getPremiumExpiryDate() {
+    const activatedAt = parseInt(localStorage.getItem('sunoLyrics_premiumActivatedAt') || '0');
+    if (!activatedAt) return null;
+    return new Date(activatedAt + this.PREMIUM_DURATION_MS);
+  }
+
   // --- PREMIUM ACTIVATION (single-use codes via Firebase) ---
   async activatePremium(code) {
     const normalizedCode = code.trim().toUpperCase();
@@ -99,6 +135,7 @@ class GeminiService {
       if (result.success) {
         this.isPremium = true;
         localStorage.setItem('sunoLyrics_premium', 'true');
+        localStorage.setItem('sunoLyrics_premiumActivatedAt', Date.now().toString());
         this.apiKey = this._getPremiumKey();
       }
       return result;
@@ -119,6 +156,7 @@ class GeminiService {
 
     this.isPremium = true;
     localStorage.setItem('sunoLyrics_premium', 'true');
+    localStorage.setItem('sunoLyrics_premiumActivatedAt', Date.now().toString());
     this.apiKey = this._getPremiumKey();
     return { success: true };
   }
@@ -126,6 +164,7 @@ class GeminiService {
   deactivatePremium() {
     this.isPremium = false;
     localStorage.removeItem('sunoLyrics_premium');
+    localStorage.removeItem('sunoLyrics_premiumActivatedAt');
     this.apiKey = '';
   }
 

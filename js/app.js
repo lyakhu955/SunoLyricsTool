@@ -37,6 +37,7 @@ class SunoLyricsApp {
     this.setupSettings();
     this.loadSaved();
     this.updateAIStatus();
+    this.checkPremiumExpiry();
     this.showWelcome();
 
     // Migrate local data to Firebase (first time only)
@@ -46,6 +47,20 @@ class SunoLyricsApp {
       this.firebase.onConfigChange((config) => {
         this.updatePremiumUI();
       });
+    }
+  }
+
+  // ===== PREMIUM EXPIRY CHECK =====
+  checkPremiumExpiry() {
+    if (!this.gemini.getIsPremium()) return;
+    const daysLeft = this.gemini.getPremiumDaysLeft();
+    if (daysLeft <= 0) {
+      this.gemini.deactivatePremium();
+      this.updatePremiumUI();
+      this.updateAIStatus();
+      this.showToast('⏰ Il tuo abbonamento Premium è scaduto. Rinnova per continuare!', 'error', 6000);
+    } else if (daysLeft <= 3) {
+      this.showToast(`⚠️ Premium scade tra ${daysLeft} giorn${daysLeft === 1 ? 'o' : 'i'}! Rinnova presto.`, 'error', 5000);
     }
   }
 
@@ -784,12 +799,28 @@ class SunoLyricsApp {
     if (pricePeriod && config.pricePeriod) pricePeriod.textContent = config.pricePeriod;
 
     if (this.gemini.getIsPremium()) {
+      const daysLeft = this.gemini.getPremiumDaysLeft();
+      const expiryDate = this.gemini.getPremiumExpiryDate();
+
       premiumBtn.textContent = '🚫 Disattiva Premium';
       premiumBtn.classList.add('deactivate');
       premiumStatus?.classList.remove('hidden');
       premiumCodeSection?.classList.add('hidden');
       if (premiumPrice) premiumPrice.style.display = 'none';
       if (premiumFeatures) premiumFeatures.style.display = 'none';
+
+      // Show expiry info
+      const expiryEl = document.getElementById('premiumExpiry');
+      if (expiryEl && expiryDate) {
+        const dateStr = expiryDate.toLocaleDateString('it-IT', { day: 'numeric', month: 'long', year: 'numeric' });
+        if (daysLeft <= 3) {
+          expiryEl.textContent = `⚠️ Scade tra ${daysLeft} giorn${daysLeft === 1 ? 'o' : 'i'} (${dateStr})`;
+          expiryEl.className = 'premium-expiry expiring';
+        } else {
+          expiryEl.textContent = `⏱️ ${daysLeft} giorni rimasti • Scade il ${dateStr}`;
+          expiryEl.className = 'premium-expiry';
+        }
+      }
     } else {
       premiumBtn.textContent = '👑 Sblocca AI Premium';
       premiumBtn.classList.remove('deactivate');
