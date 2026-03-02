@@ -1,12 +1,16 @@
-const CACHE_NAME = 'suno-lyrics-v21';
+const CACHE_NAME = 'suno-lyrics-v22';
 const urlsToCache = [
   '/',
   '/index.html',
   '/css/style.css',
+  '/css/legal.css',
   '/js/app.js',
   '/js/gemini-service.js',
   '/js/firebase-config.js',
-  '/manifest.json'
+  '/manifest.json',
+  '/privacy.html',
+  '/cookie.html',
+  '/terms.html'
 ];
 
 // Install - cache core assets

@@ -35,6 +35,7 @@ class SunoLyricsApp {
     this.setupMetaTags();
     this.setupCopyButtons();
     this.setupSettings();
+    this.setupCookieBanner();
     this.loadSaved();
     this.updateAIStatus();
     this.checkPremiumExpiry();
@@ -573,6 +574,13 @@ class SunoLyricsApp {
         return;
       }
 
+      // Check recesso consent
+      const recessoCheckbox = document.getElementById('recessoConsent');
+      if (recessoCheckbox && !recessoCheckbox.checked) {
+        this.showToast('❌ Devi accettare le condizioni sul diritto di recesso per procedere', 'error', 5000);
+        return;
+      }
+
       activatePremiumBtn.disabled = true;
       activatePremiumBtn.textContent = '⏳ Verifica...';
 
@@ -833,6 +841,38 @@ class SunoLyricsApp {
       if (premiumPrice) premiumPrice.style.display = '';
       if (premiumFeatures) premiumFeatures.style.display = '';
     }
+  }
+
+  // ===== COOKIE BANNER =====
+  setupCookieBanner() {
+    const banner = document.getElementById('cookieBanner');
+    const acceptBtn = document.getElementById('cookieAccept');
+    const rejectBtn = document.getElementById('cookieReject');
+
+    if (!banner) return;
+
+    // Check if consent already given
+    const consent = localStorage.getItem('sunoLyrics_cookieConsent');
+    if (consent) return; // Already consented, don't show banner
+
+    // Show banner after a short delay
+    setTimeout(() => {
+      banner.classList.remove('hidden');
+    }, 1500);
+
+    acceptBtn?.addEventListener('click', () => {
+      localStorage.setItem('sunoLyrics_cookieConsent', 'accepted');
+      localStorage.setItem('sunoLyrics_cookieConsentDate', new Date().toISOString());
+      banner.classList.add('hidden');
+      this.showToast('✅ Preferenze cookie salvate', 'success');
+    });
+
+    rejectBtn?.addEventListener('click', () => {
+      localStorage.setItem('sunoLyrics_cookieConsent', 'essential-only');
+      localStorage.setItem('sunoLyrics_cookieConsentDate', new Date().toISOString());
+      banner.classList.add('hidden');
+      this.showToast('✅ Solo cookie necessari attivi', 'success');
+    });
   }
 
   // ===== TOAST NOTIFICATIONS =====

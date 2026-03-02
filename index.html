@@ -12,6 +12,7 @@
   <link rel="apple-touch-icon" href="icons/icon-192.svg">
   <title>🎵 Suno Lyrics AI Generator</title>
   <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/legal.css">
 </head>
 <body>
   <!-- Welcome Popup (first visit) -->
@@ -112,6 +113,10 @@
             <div class="input-with-btn">
               <input type="text" id="premiumCode" placeholder="Inserisci il codice ricevuto..." class="input">
               <button id="activatePremium" class="btn-icon-small" title="Attiva">✓</button>
+            </div>
+            <div class="recesso-checkbox">
+              <input type="checkbox" id="recessoConsent">
+              <label for="recessoConsent">Acconsento all'esecuzione immediata del servizio digitale e prendo atto che, con l'attivazione del codice, <strong>perdo il diritto di recesso</strong> ai sensi dell'Art. 59 del Codice del Consumo. <a href="terms.html" target="_blank">Termini completi</a></label>
             </div>
             <small class="form-hint">Inserisci il codice ricevuto dopo il pagamento</small>
           </div>
@@ -804,9 +809,29 @@ We light it up like fire</pre>
     </button>
   </nav>
 
+  <!-- Cookie Banner -->
+  <div id="cookieBanner" class="cookie-banner hidden">
+    <div class="cookie-banner-content">
+      <div class="cookie-banner-text">
+        <span class="cookie-banner-icon">🍪</span>
+        <p>Questo sito utilizza tecnologie di archiviazione locale (localStorage) per il funzionamento dell'app e servizi di terze parti (Firebase, Google Gemini). Continuando, accetti la nostra <a href="cookie.html">Cookie Policy</a> e la <a href="privacy.html">Privacy Policy</a>.</p>
+      </div>
+      <div class="cookie-banner-actions">
+        <button id="cookieReject" class="cookie-btn cookie-btn-reject">Solo necessari</button>
+        <button id="cookieAccept" class="cookie-btn cookie-btn-accept">✓ Accetto</button>
+      </div>
+    </div>
+  </div>
+
   <!-- Footer -->
-  <footer class="app-footer">
-    <p>Suno Lyrics AI Generator • PWA Installabile 📲</p>
+  <footer class="app-footer-legal">
+    <p class="footer-brand">© 2025 Suno Lyrics AI Generator • PWA Installabile 📲</p>
+    <div class="footer-legal-links">
+      <a href="privacy.html">🔒 Privacy Policy</a>
+      <a href="cookie.html">🍪 Cookie Policy</a>
+      <a href="terms.html">📋 Termini e Condizioni</a>
+    </div>
+    <p class="footer-owner">Leonid Lyakhu · <a href="mailto:leonid.lyakhu@email.com">leonid.lyakhu@email.com</a> · WhatsApp: +39 388 576 5498</p>
   </footer>
 
   <!-- Firebase SDK (compat) -->
