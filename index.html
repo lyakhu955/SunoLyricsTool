@@ -14,6 +14,58 @@
   <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
+  <!-- Welcome Popup (first visit) -->
+  <div id="welcomeModal" class="modal-overlay hidden">
+    <div class="modal modal-welcome">
+      <div class="welcome-hero">
+        <span class="welcome-emoji">🎵</span>
+        <h2>Benvenuto su <strong>Suno Lyrics AI</strong></h2>
+      </div>
+      <div class="modal-body">
+        <p class="welcome-intro">Il tuo strumento AI per creare <strong>testi musicali professionali</strong> ottimizzati per <strong>Suno AI</strong>.</p>
+        <div class="welcome-features">
+          <div class="welcome-feature">
+            <span>🤖</span>
+            <div>
+              <strong>Generazione AI</strong>
+              <p>Gemini Flash scrive lyrics completi con meta tags, style prompt e struttura ottimizzata per Suno.</p>
+            </div>
+          </div>
+          <div class="welcome-feature">
+            <span>🎛️</span>
+            <div>
+              <strong>Style Builder</strong>
+              <p>Costruisci il tuo prompt di stile selezionando genere, mood, voce, strumenti e produzione.</p>
+            </div>
+          </div>
+          <div class="welcome-feature">
+            <span>🏷️</span>
+            <div>
+              <strong>Meta Tags</strong>
+              <p>Esplora tutti i meta tags di Suno: struttura, voce, strumenti — copia e incolla direttamente.</p>
+            </div>
+          </div>
+          <div class="welcome-feature">
+            <span>📖</span>
+            <div>
+              <strong>Guida Suno</strong>
+              <p>Impara le best practices per ottenere i migliori risultati su Suno AI.</p>
+            </div>
+          </div>
+        </div>
+        <div class="welcome-how">
+          <h4>⚡ Come iniziare</h4>
+          <ol>
+            <li>Vai in <strong>Impostazioni ⚙️</strong> e attiva <strong>AI Premium</strong> o inserisci la tua API key Gemini</li>
+            <li>Scegli tema, genere, mood e lingua nel tab <strong>🎤 Genera</strong></li>
+            <li>Premi <strong>✨ Genera</strong> e ottieni lyrics + style prompt pronti per Suno!</li>
+          </ol>
+        </div>
+        <button id="welcomeCloseBtn" class="btn-primary welcome-btn">🚀 Iniziamo!</button>
+      </div>
+    </div>
+  </div>
+
   <!-- Install Banner -->
   <div id="installBanner" class="install-banner hidden">
     <div class="install-content">

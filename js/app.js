@@ -35,6 +35,30 @@ class SunoLyricsApp {
     this.setupSettings();
     this.loadSaved();
     this.updateAIStatus();
+    this.showWelcome();
+  }
+
+  // ===== WELCOME POPUP (FIRST VISIT) =====
+  showWelcome() {
+    if (localStorage.getItem('sunoLyrics_welcomed')) return;
+
+    const modal = document.getElementById('welcomeModal');
+    const closeBtn = document.getElementById('welcomeCloseBtn');
+    if (!modal) return;
+
+    modal.classList.remove('hidden');
+
+    closeBtn?.addEventListener('click', () => {
+      modal.classList.add('hidden');
+      localStorage.setItem('sunoLyrics_welcomed', 'true');
+    });
+
+    modal.addEventListener('click', (e) => {
+      if (e.target === modal) {
+        modal.classList.add('hidden');
+        localStorage.setItem('sunoLyrics_welcomed', 'true');
+      }
+    });
   }
 
   // ===== SERVICE WORKER =====
