@@ -8,7 +8,7 @@
   <link rel="stylesheet" href="css/legal.css">
 </head>
 <body>
-  <div class="legal-page">
+  <div class="legal-page" style="padding-bottom:120px">
     <a href="index.html" class="legal-back">← Torna all'app</a>
     <h1>✉️ Richieste Personalizzate</h1>
     <p class="legal-updated">Prezzo fisso: <strong>€15 a canzone</strong> — canzone professionale, rifinita in modalità studio.</p>
@@ -75,7 +75,45 @@
     </div>
   </div>
 
+  <nav class="bottom-nav" id="bottomNav">
+    <button class="bottom-nav-item" data-href="index.html">
+      <span class="bottom-nav-icon">🎤</span>
+      <span class="bottom-nav-label">Genera</span>
+    </button>
+    <button class="bottom-nav-item" data-href="index.html">
+      <span class="bottom-nav-icon">🎛️</span>
+      <span class="bottom-nav-label">Style</span>
+    </button>
+    <button class="bottom-nav-item" data-href="index.html">
+      <span class="bottom-nav-icon">🏷️</span>
+      <span class="bottom-nav-label">Meta</span>
+    </button>
+    <button class="bottom-nav-item" data-href="index.html">
+      <span class="bottom-nav-icon">📖</span>
+      <span class="bottom-nav-label">Guida</span>
+    </button>
+    <button class="bottom-nav-item" data-href="index.html">
+      <span class="bottom-nav-icon">💾</span>
+      <span class="bottom-nav-label">Salvati</span>
+    </button>
+    <button class="bottom-nav-item active" id="navRichieste" data-href="richieste.html">
+      <span class="bottom-nav-icon">✉️</span>
+      <span class="bottom-nav-label">Richieste</span>
+    </button>
+    <button class="bottom-nav-item" data-href="index.html">
+      <span class="bottom-nav-icon">👑</span>
+      <span class="bottom-nav-label">Premium</span>
+    </button>
+  </nav>
+
   <script>
+    document.querySelectorAll('.bottom-nav-item').forEach((item) => {
+      item.addEventListener('click', () => {
+        const href = item.dataset.href;
+        if (href) window.location.href = href;
+      });
+    });
+
     document.getElementById('sendRequest')?.addEventListener('click', () => {
       const name = document.getElementById('reqName').value.trim();
       const email = document.getElementById('reqEmail').value.trim();
