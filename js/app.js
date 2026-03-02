@@ -684,12 +684,13 @@ class SunoLyricsApp {
     if (config.activeCodes.length === 0) {
       activeList.innerHTML = '<p class="admin-empty">Nessun codice attivo. Generane di nuovi!</p>';
     } else {
-      activeList.innerHTML = config.activeCodes.map(code =>
-        `<div class="admin-code-item">
-          <code>${code}</code>
-          <button class="btn-admin-delete" data-code="${code}" data-type="active" title="Elimina">🗑️</button>
-        </div>`
-      ).join('');
+      activeList.innerHTML = config.activeCodes.map(hash => {
+        const shortHash = hash.length > 16 ? hash.substring(0, 12) + '...' : hash;
+        return `<div class="admin-code-item">
+          <code title="${hash}">🔒 ${shortHash}</code>
+          <button class="btn-admin-delete" data-code="${hash}" data-type="active" title="Elimina">🗑️</button>
+        </div>`;
+      }).join('');
 
       // Delete handlers
       activeList.querySelectorAll('.btn-admin-delete').forEach(btn => {
@@ -704,7 +705,7 @@ class SunoLyricsApp {
             await this.gemini.saveAdminConfig(cfg);
             this.renderAdminCodes(cfg);
           }
-          this.showToast(`Codice ${code} eliminato`, 'info');
+          this.showToast('Codice eliminato', 'info');
         });
       });
     }
@@ -712,41 +713,45 @@ class SunoLyricsApp {
     if (config.usedCodes.length === 0) {
       usedList.innerHTML = '<p class="admin-empty">Nessun codice utilizzato.</p>';
     } else {
-      usedList.innerHTML = config.usedCodes.map(code =>
-        `<div class="admin-code-item used"><code>${code}</code></div>`
-      ).join('');
+      usedList.innerHTML = config.usedCodes.map(hash => {
+        const shortHash = hash.length > 16 ? hash.substring(0, 12) + '...' : hash;
+        return `<div class="admin-code-item used"><code title="${hash}">🔒 ${shortHash}</code></div>`;
+      }).join('');
     }
   }
 
   async adminGenerateCodes() {
     const qty = parseInt(document.getElementById('adminCodeQty').value) || 5;
-    const codes = GeminiService.generateCodes(qty);
+    
+    // Generate codes with hashes
+    const { plainCodes, hashedCodes } = await GeminiService.generateCodesWithHashes(qty);
 
-    // Add to active codes via Firebase
+    // Store ONLY hashes in Firebase/config
     let config;
     if (this.firebase && this.firebase.initialized) {
-      config = await this.firebase.addCodes(codes);
+      config = await this.firebase.addCodes(hashedCodes);
     } else {
       config = this.gemini.getAdminConfig();
-      config.activeCodes.push(...codes);
+      config.activeCodes.push(...hashedCodes);
       await this.gemini.saveAdminConfig(config);
     }
 
-    // Show generated codes
+    // Show PLAIN TEXT codes to admin (only visible here, never stored in plaintext)
     const output = document.getElementById('generatedCodesOutput');
     output.classList.remove('hidden');
-    output.innerHTML = `<h4>✅ ${codes.length} codici generati:</h4>` +
-      codes.map(c => `<div class="admin-code-item new"><code>${c}</code></div>`).join('') +
+    output.innerHTML = `<h4>✅ ${plainCodes.length} codici generati:</h4>` +
+      `<p class="admin-security-note">🔒 I codici sono salvati come hash crittografici. Copiali ora — non saranno più visibili!</p>` +
+      plainCodes.map(c => `<div class="admin-code-item new"><code>${c}</code></div>`).join('') +
       `<button class="btn-secondary btn-small" id="copyAllCodes" style="margin-top:8px;width:100%">📋 Copia tutti</button>`;
 
     document.getElementById('copyAllCodes')?.addEventListener('click', () => {
-      this.copyToClipboard(codes.join('\n'));
+      this.copyToClipboard(plainCodes.join('\n'));
       this.showToast('📋 Codici copiati!', 'success');
     });
 
-    // Refresh lists
+    // Refresh lists (shows hash counts, not plaintext)
     this.renderAdminCodes(config);
-    this.showToast(`⚡ ${codes.length} codici generati!`, 'success');
+    this.showToast(`🔒 ${plainCodes.length} codici generati e protetti!`, 'success');
   }
 
   async adminSave() {

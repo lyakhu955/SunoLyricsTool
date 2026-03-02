@@ -1582,6 +1582,17 @@ select.input {
   color: var(--success);
 }
 
+.admin-security-note {
+  font-size: 11px;
+  color: #f59e0b;
+  background: rgba(245, 158, 11, 0.1);
+  border: 1px solid rgba(245, 158, 11, 0.3);
+  border-radius: var(--radius-sm);
+  padding: 8px 10px;
+  margin-bottom: 8px;
+  text-align: center;
+}
+
 .btn-admin-delete {
   background: none;
   border: none;

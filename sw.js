@@ -1,4 +1,4 @@
-const CACHE_NAME = 'suno-lyrics-v20';
+const CACHE_NAME = 'suno-lyrics-v21';
 const urlsToCache = [
   '/',
   '/index.html',

@@ -116,13 +116,11 @@ class FirebaseSync {
     this.listeners.push(callback);
   }
 
-  // ---- ACTIVATE CODE (atomic operation) ----
-  async activateCode(code) {
+  // ---- ACTIVATE CODE (atomic operation, receives hash) ----
+  async activateCode(codeHash) {
     if (!this.initialized) {
       return { success: false, reason: 'offline' };
     }
-
-    const normalizedCode = code.trim().toUpperCase();
 
     try {
       // Use transaction for atomic code activation
@@ -132,18 +130,18 @@ class FirebaseSync {
         config.activeCodes = config.activeCodes || [];
         config.usedCodes = config.usedCodes || [];
 
-        const codeIndex = config.activeCodes.indexOf(normalizedCode);
+        const codeIndex = config.activeCodes.indexOf(codeHash);
         if (codeIndex === -1) {
-          return; // Abort: code not found (returning undefined aborts)
+          return; // Abort: code hash not found
         }
 
-        if (config.usedCodes.includes(normalizedCode)) {
+        if (config.usedCodes.includes(codeHash)) {
           return; // Abort: already used
         }
 
         // Move from active to used
         config.activeCodes.splice(codeIndex, 1);
-        config.usedCodes.push(normalizedCode);
+        config.usedCodes.push(codeHash);
         return config;
       });
 
@@ -152,7 +150,7 @@ class FirebaseSync {
       } else {
         // Determine reason for abort
         const config = await this.getConfig();
-        if (config.usedCodes.includes(normalizedCode)) {
+        if (config.usedCodes.includes(codeHash)) {
           return { success: false, reason: 'used' };
         }
         return { success: false, reason: 'invalid' };
@@ -163,12 +161,12 @@ class FirebaseSync {
     }
   }
 
-  // ---- ADD CODES (atomic) ----
-  async addCodes(newCodes) {
+  // ---- ADD CODES (atomic, receives hashes) ----
+  async addCodes(codeHashes) {
     if (!this.initialized) {
       // Fallback to localStorage
       const config = this._getLocalConfig();
-      config.activeCodes.push(...newCodes);
+      config.activeCodes.push(...codeHashes);
       localStorage.setItem('sunoLyrics_adminConfig', JSON.stringify(config));
       return config;
     }
@@ -177,14 +175,14 @@ class FirebaseSync {
       const result = await this.configRef.transaction((config) => {
         if (!config) return config;
         config.activeCodes = config.activeCodes || [];
-        config.activeCodes.push(...newCodes);
+        config.activeCodes.push(...codeHashes);
         return config;
       });
       return result.snapshot.val();
     } catch (err) {
       console.error('Firebase addCodes error:', err);
       const config = this._getLocalConfig();
-      config.activeCodes.push(...newCodes);
+      config.activeCodes.push(...codeHashes);
       localStorage.setItem('sunoLyrics_adminConfig', JSON.stringify(config));
       return config;
     }

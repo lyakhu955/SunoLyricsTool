@@ -72,6 +72,14 @@ class GeminiService {
     return hash === GeminiService.ADMIN_HASH;
   }
 
+  // --- CODE HASHING (SHA-256) ---
+  static async hashCode(code) {
+    const normalized = code.trim().toUpperCase();
+    const encoded = new TextEncoder().encode(normalized);
+    const hashBuffer = await crypto.subtle.digest('SHA-256', encoded);
+    return Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2, '0')).join('');
+  }
+
   // --- CODE GENERATION ---
   static generateCode() {
     const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
@@ -92,6 +100,16 @@ class GeminiService {
       codes.push(GeminiService.generateCode());
     }
     return codes;
+  }
+
+  // Generate codes and return { plainCodes, hashedCodes } 
+  static async generateCodesWithHashes(qty) {
+    const plainCodes = GeminiService.generateCodes(qty);
+    const hashedCodes = [];
+    for (const code of plainCodes) {
+      hashedCodes.push(await GeminiService.hashCode(code));
+    }
+    return { plainCodes, hashedCodes };
   }
 
   // --- PREMIUM EXPIRY CHECK ---
@@ -125,13 +143,14 @@ class GeminiService {
     return new Date(activatedAt + this.PREMIUM_DURATION_MS);
   }
 
-  // --- PREMIUM ACTIVATION (single-use codes via Firebase) ---
+  // --- PREMIUM ACTIVATION (hashed single-use codes via Firebase) ---
   async activatePremium(code) {
     const normalizedCode = code.trim().toUpperCase();
+    const codeHash = await GeminiService.hashCode(normalizedCode);
 
-    // Try Firebase first (atomic transaction)
+    // Try Firebase first (atomic transaction with hashes)
     if (this.firebase && this.firebase.initialized) {
-      const result = await this.firebase.activateCode(normalizedCode);
+      const result = await this.firebase.activateCode(codeHash);
       if (result.success) {
         this.isPremium = true;
         localStorage.setItem('sunoLyrics_premium', 'true');
@@ -141,17 +160,17 @@ class GeminiService {
       return result;
     }
 
-    // Fallback to localStorage
+    // Fallback to localStorage (also uses hashes)
     const config = this.getAdminConfig();
-    const codeIndex = config.activeCodes.indexOf(normalizedCode);
+    const codeIndex = config.activeCodes.indexOf(codeHash);
     if (codeIndex === -1) {
       return { success: false, reason: 'invalid' };
     }
-    if (config.usedCodes.includes(normalizedCode)) {
+    if (config.usedCodes.includes(codeHash)) {
       return { success: false, reason: 'used' };
     }
     config.activeCodes.splice(codeIndex, 1);
-    config.usedCodes.push(normalizedCode);
+    config.usedCodes.push(codeHash);
     await this.saveAdminConfig(config);
 
     this.isPremium = true;
