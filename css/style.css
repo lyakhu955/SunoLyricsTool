@@ -296,58 +296,118 @@ body {
 /* make the Richieste icon animate (bounce + gentle glow)
    placed here to ensure keyframes are at top-level and valid */
 .bottom-nav-item#navRichieste {
-  color: var(--accent);
+  color: #ff7a3d;
+  overflow: visible;
 }
 
-/* Richieste: smoother bounce + visible glow */
+/* Richieste: stronger attention effect with brighter glow and pulse ring */
 .bottom-nav-item#navRichieste .bottom-nav-icon {
   display: inline-block;
   position: relative;
   transform-origin: center;
   -webkit-transform-origin: center;
-  /* two animations: bounce (faster) + glow (slower) */
-  animation: richiesteBounce 1.4s cubic-bezier(.22,.9,.32,1) infinite, richiesteGlow 2.6s ease-in-out infinite;
-  -webkit-animation: richiesteBounce 1.4s cubic-bezier(.22,.9,.32,1) infinite, richiesteGlow 2.6s ease-in-out infinite;
+  z-index: 1;
+  animation: richiesteBounce 1.35s cubic-bezier(.24,.89,.34,1) infinite, richiesteGlow 1.8s ease-in-out infinite, richiesteWiggle 3.2s ease-in-out infinite;
+  -webkit-animation: richiesteBounce 1.35s cubic-bezier(.24,.89,.34,1) infinite, richiesteGlow 1.8s ease-in-out infinite, richiesteWiggle 3.2s ease-in-out infinite;
 }
 
 @keyframes richiesteBounce {
-  0% { transform: translateY(0) scale(1); }
-  30% { transform: translateY(-10px) scale(1.03); }
-  50% { transform: translateY(-6px) scale(1.02); }
-  70% { transform: translateY(-2px) scale(1.01); }
-  100% { transform: translateY(0) scale(1); }
+  0%, 100% { transform: translateY(0) scale(1); }
+  20% { transform: translateY(-9px) scale(1.07); }
+  42% { transform: translateY(-3px) scale(1.03); }
+  60% { transform: translateY(-6px) scale(1.05); }
+  82% { transform: translateY(0) scale(1.01); }
 }
 
 @keyframes richiesteGlow {
   0% {
-    text-shadow: 0 0 0 rgba(236,72,153,0.0), 0 0 0 rgba(124,58,237,0.0);
-    filter: drop-shadow(0 0 0 rgba(124,58,237,0));
+    text-shadow: 0 0 0 rgba(255,122,61,0.00), 0 0 0 rgba(255,195,74,0.00);
+    filter: drop-shadow(0 0 0 rgba(255,122,61,0));
   }
-  50% {
-    text-shadow: 0 8px 18px rgba(236,72,153,0.14), 0 0 36px rgba(124,58,237,0.10);
-    filter: drop-shadow(0 8px 18px rgba(124,58,237,0.12));
+  45% {
+    text-shadow: 0 8px 22px rgba(255,122,61,0.48), 0 0 34px rgba(255,195,74,0.62);
+    filter: drop-shadow(0 10px 18px rgba(255,122,61,0.46));
   }
   100% {
-    text-shadow: 0 6px 12px rgba(236,72,153,0.12), 0 0 30px rgba(124,58,237,0.08);
-    filter: drop-shadow(0 6px 12px rgba(124,58,237,0.10));
+    text-shadow: 0 5px 14px rgba(255,122,61,0.34), 0 0 26px rgba(255,195,74,0.40);
+    filter: drop-shadow(0 7px 14px rgba(255,122,61,0.34));
   }
 }
 
-/* keep a subtle circular glow layer behind the icon for stronger effect on some browsers */
+@keyframes richiesteWiggle {
+  0%, 100% { rotate: 0deg; }
+  6% { rotate: -7deg; }
+  12% { rotate: 6deg; }
+  18% { rotate: -4deg; }
+  24% { rotate: 2deg; }
+  30% { rotate: 0deg; }
+}
+
+@keyframes richiestePulseRing {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.72);
+  }
+  18% {
+    opacity: 0.6;
+  }
+  48% {
+    opacity: 0.35;
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(1.45);
+  }
+}
+
+/* aura behind icon */
 .bottom-nav-item#navRichieste .bottom-nav-icon::after {
   content: '';
   position: absolute;
   left: 50%;
   top: 50%;
-  width: 42px;
-  height: 42px;
+  width: 46px;
+  height: 46px;
   transform: translate(-50%, -50%);
   border-radius: 50%;
-  background: radial-gradient(circle at center, rgba(236,72,153,0.12), rgba(124,58,237,0.06) 60%, transparent 70%);
+  background: radial-gradient(circle at center, rgba(255,195,74,0.52), rgba(255,122,61,0.28) 48%, rgba(255,122,61,0.00) 74%);
   pointer-events: none;
-  filter: blur(6px);
-  opacity: 0.9;
-  animation: richiesteGlow 2.6s ease-in-out infinite;
+  filter: blur(8px);
+  opacity: 0.88;
+  z-index: -1;
+  animation: richiesteGlow 1.8s ease-in-out infinite;
+}
+
+/* expanding ring pulse */
+.bottom-nav-item#navRichieste .bottom-nav-icon::before {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 24px;
+  height: 24px;
+  transform: translate(-50%, -50%) scale(0.72);
+  border-radius: 999px;
+  border: 2px solid rgba(255,195,74,0.85);
+  box-shadow: 0 0 0 2px rgba(255,122,61,0.24), 0 0 22px rgba(255,122,61,0.42);
+  pointer-events: none;
+  z-index: -1;
+  animation: richiestePulseRing 1.9s ease-out infinite;
+}
+
+/* brighter label for readability and draw */
+.bottom-nav-item#navRichieste .bottom-nav-label {
+  color: #ffc34a;
+  text-shadow: 0 0 12px rgba(255,122,61,0.42);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bottom-nav-item#navRichieste .bottom-nav-icon,
+  .bottom-nav-item#navRichieste .bottom-nav-icon::before,
+  .bottom-nav-item#navRichieste .bottom-nav-icon::after {
+    animation: none;
+    -webkit-animation: none;
+  }
 }
 
 /* ===== MAIN CONTENT ===== */
