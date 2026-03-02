@@ -44,20 +44,21 @@ class SunoLyricsApp {
 
     const modal = document.getElementById('welcomeModal');
     const closeBtn = document.getElementById('welcomeCloseBtn');
+    const closeX = document.getElementById('welcomeCloseX');
     if (!modal) return;
 
     modal.classList.remove('hidden');
 
-    closeBtn?.addEventListener('click', () => {
+    const dismiss = () => {
       modal.classList.add('hidden');
       localStorage.setItem('sunoLyrics_welcomed', 'true');
-    });
+    };
+
+    closeBtn?.addEventListener('click', dismiss);
+    closeX?.addEventListener('click', dismiss);
 
     modal.addEventListener('click', (e) => {
-      if (e.target === modal) {
-        modal.classList.add('hidden');
-        localStorage.setItem('sunoLyrics_welcomed', 'true');
-      }
+      if (e.target === modal) dismiss();
     });
   }
 

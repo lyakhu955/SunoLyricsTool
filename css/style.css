@@ -1185,7 +1185,32 @@ select.input {
 /* ===== WELCOME POPUP ===== */
 .modal-welcome {
   max-width: 460px;
-  overflow: hidden;
+  overflow-y: auto;
+  position: relative;
+}
+
+.welcome-close-x {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  z-index: 2;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.3);
+  color: var(--text-secondary);
+  font-size: 16px;
+  border: none;
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.welcome-close-x:hover {
+  background: rgba(0, 0, 0, 0.5);
+  color: var(--text-primary);
 }
 
 .welcome-hero {
