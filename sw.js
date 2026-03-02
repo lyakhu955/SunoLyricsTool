@@ -1,10 +1,11 @@
-const CACHE_NAME = 'suno-lyrics-v18';
+const CACHE_NAME = 'suno-lyrics-v19';
 const urlsToCache = [
   '/',
   '/index.html',
   '/css/style.css',
   '/js/app.js',
   '/js/gemini-service.js',
+  '/js/firebase-config.js',
   '/manifest.json'
 ];
 
@@ -32,7 +33,9 @@ self.addEventListener('activate', event => {
 // Fetch - network first, cache fallback (app shell only)
 self.addEventListener('fetch', event => {
   // Always go to network for API calls
-  if (event.request.url.includes('generativelanguage.googleapis.com')) {
+  if (event.request.url.includes('generativelanguage.googleapis.com') ||
+      event.request.url.includes('firebaseio.com') ||
+      event.request.url.includes('firebasedatabase.app')) {
     return;
   }
 

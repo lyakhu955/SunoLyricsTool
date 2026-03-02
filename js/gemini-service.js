@@ -10,6 +10,12 @@ class GeminiService {
     this.baseUrl = 'https://generativelanguage.googleapis.com/v1beta/models';
     this.isPremium = localStorage.getItem('sunoLyrics_premium') === 'true';
     this.apiKey = this.isPremium ? this._getPremiumKey() : '';
+    // Firebase sync instance (set from app.js after FirebaseSync is created)
+    this.firebase = null;
+  }
+
+  setFirebase(firebaseSync) {
+    this.firebase = firebaseSync;
   }
 
   // Obfuscated premium key — not stored in plain text
@@ -18,8 +24,9 @@ class GeminiService {
     return atob(parts.join(''));
   }
 
-  // --- ADMIN CONFIG ---
+  // --- ADMIN CONFIG (Firebase + localStorage fallback) ---
   getAdminConfig() {
+    // Sync version: returns cached localStorage copy (Firebase listener keeps it updated)
     return JSON.parse(localStorage.getItem('sunoLyrics_adminConfig') || JSON.stringify({
       whatsapp: '393885765498',
       price: '4.99',
@@ -29,8 +36,20 @@ class GeminiService {
     }));
   }
 
-  saveAdminConfig(config) {
+  async getAdminConfigAsync() {
+    // Async version: reads directly from Firebase
+    if (this.firebase) {
+      return await this.firebase.getConfig();
+    }
+    return this.getAdminConfig();
+  }
+
+  async saveAdminConfig(config) {
+    // Save to both Firebase and localStorage
     localStorage.setItem('sunoLyrics_adminConfig', JSON.stringify(config));
+    if (this.firebase) {
+      await this.firebase.saveConfig(config);
+    }
   }
 
   // --- ADMIN PASSWORD (SHA-256 hashed) ---
@@ -70,26 +89,33 @@ class GeminiService {
     return codes;
   }
 
-  // --- PREMIUM ACTIVATION (single-use codes) ---
-  activatePremium(code) {
-    const config = this.getAdminConfig();
+  // --- PREMIUM ACTIVATION (single-use codes via Firebase) ---
+  async activatePremium(code) {
     const normalizedCode = code.trim().toUpperCase();
 
-    // Check if code is in active list
+    // Try Firebase first (atomic transaction)
+    if (this.firebase && this.firebase.initialized) {
+      const result = await this.firebase.activateCode(normalizedCode);
+      if (result.success) {
+        this.isPremium = true;
+        localStorage.setItem('sunoLyrics_premium', 'true');
+        this.apiKey = this._getPremiumKey();
+      }
+      return result;
+    }
+
+    // Fallback to localStorage
+    const config = this.getAdminConfig();
     const codeIndex = config.activeCodes.indexOf(normalizedCode);
     if (codeIndex === -1) {
       return { success: false, reason: 'invalid' };
     }
-
-    // Check if already used
     if (config.usedCodes.includes(normalizedCode)) {
       return { success: false, reason: 'used' };
     }
-
-    // Activate: move from active to used
     config.activeCodes.splice(codeIndex, 1);
     config.usedCodes.push(normalizedCode);
-    this.saveAdminConfig(config);
+    await this.saveAdminConfig(config);
 
     this.isPremium = true;
     localStorage.setItem('sunoLyrics_premium', 'true');

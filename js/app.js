@@ -11,6 +11,8 @@ document.addEventListener('DOMContentLoaded', () => {
 class SunoLyricsApp {
   constructor() {
     this.gemini = new GeminiService();
+    this.firebase = new FirebaseSync();
+    this.gemini.setFirebase(this.firebase);
     this.savedItems = JSON.parse(localStorage.getItem('sunoLyrics_saved') || '[]');
     this.deferredPrompt = null;
     this.selectedChips = {
@@ -24,7 +26,7 @@ class SunoLyricsApp {
     this.metaTagContent = '';
   }
 
-  init() {
+  async init() {
     this.registerServiceWorker();
     this.setupInstallPrompt();
     this.setupTabs();
@@ -36,6 +38,15 @@ class SunoLyricsApp {
     this.loadSaved();
     this.updateAIStatus();
     this.showWelcome();
+
+    // Migrate local data to Firebase (first time only)
+    if (this.firebase.initialized) {
+      await this.firebase.migrateLocalToFirebase();
+      // Listen for real-time config changes from Firebase
+      this.firebase.onConfigChange((config) => {
+        this.updatePremiumUI();
+      });
+    }
   }
 
   // ===== WELCOME POPUP (FIRST VISIT) =====
@@ -530,7 +541,7 @@ class SunoLyricsApp {
       // Show code input OR open WhatsApp
       if (premiumCodeSection.classList.contains('hidden')) {
         premiumCodeSection.classList.remove('hidden');
-        // Open WhatsApp with pre-filled message
+        // Open WhatsApp with pre-filled message (use cached config, fast)
         const config = this.gemini.getAdminConfig();
         const phone = config.whatsapp || '393885765498';
         const message = encodeURIComponent(
@@ -540,23 +551,33 @@ class SunoLyricsApp {
       }
     });
 
-    activatePremiumBtn?.addEventListener('click', () => {
+    activatePremiumBtn?.addEventListener('click', async () => {
       const code = premiumCodeInput?.value?.trim();
       if (!code) {
         this.showToast('❌ Inserisci il codice di attivazione', 'error');
         return;
       }
 
-      const result = this.gemini.activatePremium(code);
-      if (result.success) {
-        this.showToast('👑 Premium attivato! Ora puoi generare con AI!', 'success', 5000);
-        this.updatePremiumUI();
-        this.updateAIStatus();
-      } else if (result.reason === 'used') {
-        this.showToast('❌ Questo codice è già stato utilizzato.', 'error', 4000);
-      } else {
-        this.showToast('❌ Codice non valido. Contatta via WhatsApp.', 'error', 4000);
+      activatePremiumBtn.disabled = true;
+      activatePremiumBtn.textContent = '⏳ Verifica...';
+
+      try {
+        const result = await this.gemini.activatePremium(code);
+        if (result.success) {
+          this.showToast('👑 Premium attivato! Ora puoi generare con AI!', 'success', 5000);
+          this.updatePremiumUI();
+          this.updateAIStatus();
+        } else if (result.reason === 'used') {
+          this.showToast('❌ Questo codice è già stato utilizzato.', 'error', 4000);
+        } else {
+          this.showToast('❌ Codice non valido. Contatta via WhatsApp.', 'error', 4000);
+        }
+      } catch (err) {
+        this.showToast('❌ Errore di connessione. Riprova.', 'error', 4000);
       }
+
+      activatePremiumBtn.disabled = false;
+      activatePremiumBtn.textContent = '✅ Attiva Codice';
     });
 
     this.updatePremiumUI();
@@ -618,9 +639,11 @@ class SunoLyricsApp {
   }
 
   // ===== ADMIN PANEL =====
-  openAdminPanel() {
+  async openAdminPanel() {
     const modal = document.getElementById('adminPanelModal');
-    const config = this.gemini.getAdminConfig();
+    
+    // Load config from Firebase (async, fresh data)
+    const config = await this.gemini.getAdminConfigAsync();
 
     // Populate fields
     document.getElementById('adminWhatsapp').value = config.whatsapp || '';
@@ -655,12 +678,17 @@ class SunoLyricsApp {
 
       // Delete handlers
       activeList.querySelectorAll('.btn-admin-delete').forEach(btn => {
-        btn.addEventListener('click', () => {
+        btn.addEventListener('click', async () => {
           const code = btn.dataset.code;
-          const cfg = this.gemini.getAdminConfig();
-          cfg.activeCodes = cfg.activeCodes.filter(c => c !== code);
-          this.gemini.saveAdminConfig(cfg);
-          this.renderAdminCodes(cfg);
+          if (this.firebase && this.firebase.initialized) {
+            const cfg = await this.firebase.deleteCode(code, 'active');
+            this.renderAdminCodes(cfg);
+          } else {
+            const cfg = this.gemini.getAdminConfig();
+            cfg.activeCodes = cfg.activeCodes.filter(c => c !== code);
+            await this.gemini.saveAdminConfig(cfg);
+            this.renderAdminCodes(cfg);
+          }
           this.showToast(`Codice ${code} eliminato`, 'info');
         });
       });
@@ -675,14 +703,19 @@ class SunoLyricsApp {
     }
   }
 
-  adminGenerateCodes() {
+  async adminGenerateCodes() {
     const qty = parseInt(document.getElementById('adminCodeQty').value) || 5;
     const codes = GeminiService.generateCodes(qty);
 
-    // Add to active codes
-    const config = this.gemini.getAdminConfig();
-    config.activeCodes.push(...codes);
-    this.gemini.saveAdminConfig(config);
+    // Add to active codes via Firebase
+    let config;
+    if (this.firebase && this.firebase.initialized) {
+      config = await this.firebase.addCodes(codes);
+    } else {
+      config = this.gemini.getAdminConfig();
+      config.activeCodes.push(...codes);
+      await this.gemini.saveAdminConfig(config);
+    }
 
     // Show generated codes
     const output = document.getElementById('generatedCodesOutput');
@@ -701,12 +734,12 @@ class SunoLyricsApp {
     this.showToast(`⚡ ${codes.length} codici generati!`, 'success');
   }
 
-  adminSave() {
-    const config = this.gemini.getAdminConfig();
+  async adminSave() {
+    const config = await this.gemini.getAdminConfigAsync();
     config.whatsapp = document.getElementById('adminWhatsapp').value.trim();
     config.price = document.getElementById('adminPrice').value.trim();
     config.pricePeriod = document.getElementById('adminPricePeriod').value;
-    this.gemini.saveAdminConfig(config);
+    await this.gemini.saveAdminConfig(config);
 
     // Update visible price in premium section
     const priceTag = document.querySelector('.price-tag');
@@ -714,7 +747,7 @@ class SunoLyricsApp {
     if (priceTag) priceTag.textContent = `€${config.price}`;
     if (pricePeriod) pricePeriod.textContent = config.pricePeriod;
 
-    this.showToast('💾 Impostazioni admin salvate!', 'success');
+    this.showToast('💾 Impostazioni salvate su cloud! ☁️', 'success');
   }
 
   updateAIStatus() {
