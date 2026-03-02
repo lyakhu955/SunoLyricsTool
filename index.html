@@ -112,6 +112,98 @@
             Usa generazione template se offline/errore AI
           </label>
         </div>
+
+        <hr class="modal-divider">
+        <button id="adminAccessBtn" class="btn-admin-access">🔒 Admin</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Admin Login Modal -->
+  <div id="adminLoginModal" class="modal-overlay hidden">
+    <div class="modal modal-small">
+      <div class="modal-header">
+        <h2>🔐 Accesso Admin</h2>
+        <button id="closeAdminLogin" class="btn-dismiss">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label for="adminPassword">Password</label>
+          <input type="password" id="adminPassword" placeholder="Inserisci password admin..." class="input">
+        </div>
+        <button id="adminLoginBtn" class="btn-primary" style="width:100%">🔓 Accedi</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Admin Panel Modal -->
+  <div id="adminPanelModal" class="modal-overlay hidden">
+    <div class="modal modal-admin">
+      <div class="modal-header">
+        <h2>🛡️ Pannello Admin</h2>
+        <button id="closeAdminPanel" class="btn-dismiss">✕</button>
+      </div>
+      <div class="modal-body">
+
+        <!-- WhatsApp Number -->
+        <div class="admin-section">
+          <h3>📱 Numero WhatsApp</h3>
+          <div class="form-group">
+            <input type="text" id="adminWhatsapp" placeholder="393885765498" class="input">
+            <small class="form-hint">Formato internazionale senza + (es: 393881234567)</small>
+          </div>
+        </div>
+
+        <!-- Price -->
+        <div class="admin-section">
+          <h3>💰 Prezzo Premium</h3>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Importo</label>
+              <input type="text" id="adminPrice" placeholder="4.99" class="input">
+            </div>
+            <div class="form-group">
+              <label>Periodo</label>
+              <select id="adminPricePeriod" class="input">
+                <option value="/ mese">Al mese</option>
+                <option value="/ anno">All'anno</option>
+                <option value=" una tantum">Una tantum</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <!-- Code Generator -->
+        <div class="admin-section">
+          <h3>🔑 Generatore Codici</h3>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Quantità</label>
+              <input type="number" id="adminCodeQty" value="5" min="1" max="50" class="input">
+            </div>
+            <div class="form-group">
+              <label>&nbsp;</label>
+              <button id="generateCodesBtn" class="btn-primary" style="width:100%">⚡ Genera Codici</button>
+            </div>
+          </div>
+          <div id="generatedCodesOutput" class="admin-codes-output hidden"></div>
+        </div>
+
+        <!-- Active Codes -->
+        <div class="admin-section">
+          <h3>✅ Codici Attivi <span id="activeCodesCount" class="admin-badge">0</span></h3>
+          <div id="activeCodesList" class="admin-codes-list"></div>
+        </div>
+
+        <!-- Used Codes -->
+        <div class="admin-section">
+          <h3>🚫 Codici Usati <span id="usedCodesCount" class="admin-badge">0</span></h3>
+          <div id="usedCodesList" class="admin-codes-list"></div>
+        </div>
+
+        <hr class="modal-divider">
+        <button id="adminSaveBtn" class="btn-primary" style="width:100%">💾 Salva Impostazioni Admin</button>
+        <button id="adminLogoutBtn" class="btn-secondary" style="width:100%; margin-top:8px">🚪 Esci da Admin</button>
       </div>
     </div>
   </div>

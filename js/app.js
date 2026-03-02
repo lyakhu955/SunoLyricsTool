@@ -543,9 +543,10 @@ class SunoLyricsApp {
       if (premiumCodeSection.classList.contains('hidden')) {
         premiumCodeSection.classList.remove('hidden');
         // Open WhatsApp with pre-filled message
-        const phone = '393885765498'; // Your Italian number without +
+        const config = this.gemini.getAdminConfig();
+        const phone = config.whatsapp || '393885765498';
         const message = encodeURIComponent(
-          '👑 Ciao Leonid! Vorrei attivare AI Premium su Suno Lyrics AI Generator.\n\nVorrei ricevere il codice di attivazione. Come posso pagare?'
+          '👑 Ciao! Vorrei attivare AI Premium su Suno Lyrics AI Generator.\n\nVorrei ricevere il codice di attivazione. Come posso pagare?'
         );
         window.open(`https://wa.me/${phone}?text=${message}`, '_blank');
       }
@@ -558,12 +559,15 @@ class SunoLyricsApp {
         return;
       }
 
-      if (this.gemini.activatePremium(code)) {
+      const result = this.gemini.activatePremium(code);
+      if (result.success) {
         this.showToast('👑 Premium attivato! Ora puoi generare con AI!', 'success', 5000);
         this.updatePremiumUI();
         this.updateAIStatus();
+      } else if (result.reason === 'used') {
+        this.showToast('❌ Questo codice è già stato utilizzato.', 'error', 4000);
       } else {
-        this.showToast('❌ Codice non valido. Contatta Leonid via WhatsApp.', 'error', 4000);
+        this.showToast('❌ Codice non valido. Contatta via WhatsApp.', 'error', 4000);
       }
     });
 
@@ -656,6 +660,161 @@ class SunoLyricsApp {
       this.useFallback = fallbackCheckbox.checked;
       localStorage.setItem('sunoLyrics_useFallback', this.useFallback);
     });
+
+    // ===== ADMIN ACCESS =====
+    const adminAccessBtn = document.getElementById('adminAccessBtn');
+    const adminLoginModal = document.getElementById('adminLoginModal');
+    const closeAdminLogin = document.getElementById('closeAdminLogin');
+    const adminPasswordInput = document.getElementById('adminPassword');
+    const adminLoginBtn = document.getElementById('adminLoginBtn');
+    const adminPanelModal = document.getElementById('adminPanelModal');
+    const closeAdminPanel = document.getElementById('closeAdminPanel');
+    const adminLogoutBtn = document.getElementById('adminLogoutBtn');
+
+    adminAccessBtn?.addEventListener('click', () => {
+      adminLoginModal.classList.remove('hidden');
+    });
+    closeAdminLogin?.addEventListener('click', () => {
+      adminLoginModal.classList.add('hidden');
+      adminPasswordInput.value = '';
+    });
+    adminLoginModal?.addEventListener('click', (e) => {
+      if (e.target === adminLoginModal) { adminLoginModal.classList.add('hidden'); adminPasswordInput.value = ''; }
+    });
+
+    adminLoginBtn?.addEventListener('click', async () => {
+      const pwd = adminPasswordInput.value;
+      if (!pwd) { this.showToast('❌ Inserisci la password', 'error'); return; }
+
+      const isValid = await GeminiService.verifyAdmin(pwd);
+      if (isValid) {
+        adminLoginModal.classList.add('hidden');
+        adminPasswordInput.value = '';
+        this.openAdminPanel();
+      } else {
+        this.showToast('❌ Password errata', 'error');
+      }
+    });
+
+    // Enter key for admin login
+    adminPasswordInput?.addEventListener('keyup', (e) => {
+      if (e.key === 'Enter') adminLoginBtn.click();
+    });
+
+    closeAdminPanel?.addEventListener('click', () => adminPanelModal.classList.add('hidden'));
+    adminPanelModal?.addEventListener('click', (e) => {
+      if (e.target === adminPanelModal) adminPanelModal.classList.add('hidden');
+    });
+    adminLogoutBtn?.addEventListener('click', () => {
+      adminPanelModal.classList.add('hidden');
+      this.showToast('🚪 Admin disconnesso', 'info');
+    });
+
+    // Generate codes button
+    document.getElementById('generateCodesBtn')?.addEventListener('click', () => this.adminGenerateCodes());
+
+    // Save admin button
+    document.getElementById('adminSaveBtn')?.addEventListener('click', () => this.adminSave());
+  }
+
+  // ===== ADMIN PANEL =====
+  openAdminPanel() {
+    const modal = document.getElementById('adminPanelModal');
+    const config = this.gemini.getAdminConfig();
+
+    // Populate fields
+    document.getElementById('adminWhatsapp').value = config.whatsapp || '';
+    document.getElementById('adminPrice').value = config.price || '4.99';
+    document.getElementById('adminPricePeriod').value = config.pricePeriod || '/ mese';
+
+    // Render code lists
+    this.renderAdminCodes(config);
+
+    modal.classList.remove('hidden');
+    this.showToast('🛡️ Accesso admin concesso', 'success');
+  }
+
+  renderAdminCodes(config) {
+    const activeList = document.getElementById('activeCodesList');
+    const usedList = document.getElementById('usedCodesList');
+    const activeCount = document.getElementById('activeCodesCount');
+    const usedCount = document.getElementById('usedCodesCount');
+
+    activeCount.textContent = config.activeCodes.length;
+    usedCount.textContent = config.usedCodes.length;
+
+    if (config.activeCodes.length === 0) {
+      activeList.innerHTML = '<p class="admin-empty">Nessun codice attivo. Generane di nuovi!</p>';
+    } else {
+      activeList.innerHTML = config.activeCodes.map(code =>
+        `<div class="admin-code-item">
+          <code>${code}</code>
+          <button class="btn-admin-delete" data-code="${code}" data-type="active" title="Elimina">🗑️</button>
+        </div>`
+      ).join('');
+
+      // Delete handlers
+      activeList.querySelectorAll('.btn-admin-delete').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const code = btn.dataset.code;
+          const cfg = this.gemini.getAdminConfig();
+          cfg.activeCodes = cfg.activeCodes.filter(c => c !== code);
+          this.gemini.saveAdminConfig(cfg);
+          this.renderAdminCodes(cfg);
+          this.showToast(`Codice ${code} eliminato`, 'info');
+        });
+      });
+    }
+
+    if (config.usedCodes.length === 0) {
+      usedList.innerHTML = '<p class="admin-empty">Nessun codice utilizzato.</p>';
+    } else {
+      usedList.innerHTML = config.usedCodes.map(code =>
+        `<div class="admin-code-item used"><code>${code}</code></div>`
+      ).join('');
+    }
+  }
+
+  adminGenerateCodes() {
+    const qty = parseInt(document.getElementById('adminCodeQty').value) || 5;
+    const codes = GeminiService.generateCodes(qty);
+
+    // Add to active codes
+    const config = this.gemini.getAdminConfig();
+    config.activeCodes.push(...codes);
+    this.gemini.saveAdminConfig(config);
+
+    // Show generated codes
+    const output = document.getElementById('generatedCodesOutput');
+    output.classList.remove('hidden');
+    output.innerHTML = `<h4>✅ ${codes.length} codici generati:</h4>` +
+      codes.map(c => `<div class="admin-code-item new"><code>${c}</code></div>`).join('') +
+      `<button class="btn-secondary btn-small" id="copyAllCodes" style="margin-top:8px;width:100%">📋 Copia tutti</button>`;
+
+    document.getElementById('copyAllCodes')?.addEventListener('click', () => {
+      this.copyToClipboard(codes.join('\n'));
+      this.showToast('📋 Codici copiati!', 'success');
+    });
+
+    // Refresh lists
+    this.renderAdminCodes(config);
+    this.showToast(`⚡ ${codes.length} codici generati!`, 'success');
+  }
+
+  adminSave() {
+    const config = this.gemini.getAdminConfig();
+    config.whatsapp = document.getElementById('adminWhatsapp').value.trim();
+    config.price = document.getElementById('adminPrice').value.trim();
+    config.pricePeriod = document.getElementById('adminPricePeriod').value;
+    this.gemini.saveAdminConfig(config);
+
+    // Update visible price in premium section
+    const priceTag = document.querySelector('.price-tag');
+    const pricePeriod = document.querySelector('.price-period');
+    if (priceTag) priceTag.textContent = `€${config.price}`;
+    if (pricePeriod) pricePeriod.textContent = config.pricePeriod;
+
+    this.showToast('💾 Impostazioni admin salvate!', 'success');
   }
 
   updateAIStatus() {
@@ -684,6 +843,13 @@ class SunoLyricsApp {
     const premiumCodeSection = document.getElementById('premiumCodeSection');
     const premiumPrice = document.querySelector('.premium-price');
     const premiumFeatures = document.querySelector('.premium-features');
+
+    // Load dynamic price from admin config
+    const config = this.gemini.getAdminConfig();
+    const priceTag = document.querySelector('.price-tag');
+    const pricePeriod = document.querySelector('.price-period');
+    if (priceTag && config.price) priceTag.textContent = `€${config.price}`;
+    if (pricePeriod && config.pricePeriod) pricePeriod.textContent = config.pricePeriod;
 
     if (this.gemini.getIsPremium()) {
       premiumBtn.textContent = '🚫 Disattiva Premium';

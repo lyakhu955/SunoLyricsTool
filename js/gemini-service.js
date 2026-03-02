@@ -23,24 +23,88 @@ class GeminiService {
     return atob(parts.join(''));
   }
 
+  // --- ADMIN CONFIG ---
+  getAdminConfig() {
+    return JSON.parse(localStorage.getItem('sunoLyrics_adminConfig') || JSON.stringify({
+      whatsapp: '393885765498',
+      price: '4.99',
+      pricePeriod: '/ mese',
+      activeCodes: [],
+      usedCodes: []
+    }));
+  }
+
+  saveAdminConfig(config) {
+    localStorage.setItem('sunoLyrics_adminConfig', JSON.stringify(config));
+  }
+
+  // --- ADMIN PASSWORD (SHA-256 hashed) ---
+  // Hash of '1235789'
+  static ADMIN_HASH = 'fdd7184a59fd5f2010c3d09b49a9fb5ed2ed2412b8ccc97e1fd553241baba98f';
+
+  static async hashPassword(pwd) {
+    const encoded = new TextEncoder().encode(pwd);
+    const hashBuffer = await crypto.subtle.digest('SHA-256', encoded);
+    return Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2, '0')).join('');
+  }
+
+  static async verifyAdmin(pwd) {
+    const hash = await GeminiService.hashPassword(pwd);
+    return hash === GeminiService.ADMIN_HASH;
+  }
+
+  // --- CODE GENERATION ---
+  static generateCode() {
+    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+    const segments = [];
+    for (let s = 0; s < 3; s++) {
+      let seg = '';
+      for (let i = 0; i < 4; i++) {
+        seg += chars[Math.floor(Math.random() * chars.length)];
+      }
+      segments.push(seg);
+    }
+    return segments.join('-');
+  }
+
+  static generateCodes(qty) {
+    const codes = [];
+    for (let i = 0; i < qty; i++) {
+      codes.push(GeminiService.generateCode());
+    }
+    return codes;
+  }
+
+  // --- PREMIUM ACTIVATION (single-use codes) ---
   activatePremium(code) {
-    // Valid activation codes (you can change these anytime)
-    const validCodes = ['SUNO2025', 'LYRICS-PRO', 'LEONID-AI'];
+    const config = this.getAdminConfig();
     const normalizedCode = code.trim().toUpperCase();
 
-    if (validCodes.includes(normalizedCode)) {
-      this.isPremium = true;
-      localStorage.setItem('sunoLyrics_premium', 'true');
-      this.apiKey = this._getPremiumKey();
-      return true;
+    // Check if code is in active list
+    const codeIndex = config.activeCodes.indexOf(normalizedCode);
+    if (codeIndex === -1) {
+      return { success: false, reason: 'invalid' };
     }
-    return false;
+
+    // Check if already used
+    if (config.usedCodes.includes(normalizedCode)) {
+      return { success: false, reason: 'used' };
+    }
+
+    // Activate: move from active to used
+    config.activeCodes.splice(codeIndex, 1);
+    config.usedCodes.push(normalizedCode);
+    this.saveAdminConfig(config);
+
+    this.isPremium = true;
+    localStorage.setItem('sunoLyrics_premium', 'true');
+    this.apiKey = this._getPremiumKey();
+    return { success: true };
   }
 
   deactivatePremium() {
     this.isPremium = false;
     localStorage.removeItem('sunoLyrics_premium');
-    // Keep user's own key if they have one, otherwise clear
     const ownKey = localStorage.getItem('sunoLyrics_geminiKey');
     this.apiKey = ownKey || '';
   }
