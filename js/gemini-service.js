@@ -7,7 +7,7 @@
 class GeminiService {
   constructor() {
     this.apiKey = localStorage.getItem('sunoLyrics_geminiKey') || '';
-    this.model = localStorage.getItem('sunoLyrics_geminiModel') || 'gemini-2.5-flash';
+    this.model = 'gemini-2.5-flash';
     this.baseUrl = 'https://generativelanguage.googleapis.com/v1beta/models';
     this.isPremium = localStorage.getItem('sunoLyrics_premium') === 'true';
 
@@ -120,11 +120,6 @@ class GeminiService {
 
   getApiKey() {
     return this.apiKey;
-  }
-
-  setModel(model) {
-    this.model = model;
-    localStorage.setItem('sunoLyrics_geminiModel', model);
   }
 
   getModel() {
@@ -264,40 +259,24 @@ FORMATO OUTPUT RICHIESTO:
 
     try {
       let response;
-      let currentModel = this.model;
-      const fallbackModel = 'gemini-2.5-flash';
 
-      // Try primary model first
-      response = await fetch(`${this.baseUrl}/${currentModel}:generateContent?key=${this.apiKey}`, {
+      // Call Gemini Flash
+      response = await fetch(`${this.baseUrl}/${this.model}:generateContent?key=${this.apiKey}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(body)
       });
 
-      // If rate limited on primary model, try fallback
-      if (response.status === 429 && currentModel !== fallbackModel) {
-        console.log(`${currentModel} rate limited, falling back to ${fallbackModel}...`);
-        currentModel = fallbackModel;
-        response = await fetch(`${this.baseUrl}/${currentModel}:generateContent?key=${this.apiKey}`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(body)
-        });
-      }
-
-      // If still rate limited, retry once after wait
+      // If rate limited, retry once after wait
       if (response.status === 429) {
-        console.log('Still rate limited, waiting 5s and retrying...');
+        console.log('Rate limited, waiting 5s and retrying...');
         await new Promise(r => setTimeout(r, 5000));
-        response = await fetch(`${this.baseUrl}/${currentModel}:generateContent?key=${this.apiKey}`, {
+        response = await fetch(`${this.baseUrl}/${this.model}:generateContent?key=${this.apiKey}`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(body)
         });
       }
-
-      // Track which model actually worked
-      this._lastModelUsed = currentModel;
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));

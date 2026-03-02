@@ -178,9 +178,7 @@ class SunoLyricsApp {
         source: 'gemini'
       };
 
-      const usedModel = this.gemini._lastModelUsed || this.gemini.getModel();
-      const modelLabel = usedModel.includes('pro') ? 'Pro' : 'Flash';
-      this.showToast(`🤖 Generato con Gemini ${modelLabel}!`, 'success');
+      this.showToast('🤖 Generato con Gemini Flash!', 'success');
 
       this.displayResults(result, options);
 
@@ -482,14 +480,10 @@ class SunoLyricsApp {
     const testBtn = document.getElementById('testApiKey');
     const toggleBtn = document.getElementById('toggleKeyVisibility');
     const apiKeyInput = document.getElementById('geminiApiKey');
-    const modelSelect = document.getElementById('geminiModel');
 
     // Load saved settings
     if (this.gemini.hasApiKey()) {
       apiKeyInput.value = this.gemini.getApiKey();
-    }
-    if (modelSelect) {
-      modelSelect.value = this.gemini.getModel();
     }
 
 
@@ -557,20 +551,16 @@ class SunoLyricsApp {
       apiKeyInput.type = apiKeyInput.type === 'password' ? 'text' : 'password';
     });
 
-    // Save API key + model
+    // Save API key
     saveBtn?.addEventListener('click', () => {
       const key = apiKeyInput.value.trim();
       this.gemini.setApiKey(key);
-      if (modelSelect) {
-        this.gemini.setModel(modelSelect.value);
-      }
       this.updateAIStatus();
       this.updateSettingsStatus();
       if (key) {
-        const modelName = modelSelect?.value?.includes('pro') ? 'Pro' : 'Flash';
-        this.showToast(`🔑 Salvato! Modello: Gemini ${modelName}`, 'success');
+        this.showToast('🔑 API Key salvata! Gemini Flash attivo.', 'success');
       } else {
-        this.showToast('🔑 API Key rimossa. Modalità template attiva.', 'info');
+        this.showToast('🔑 API Key rimossa.', 'info');
       }
     });
 
@@ -799,9 +789,8 @@ class SunoLyricsApp {
 
     if (this.gemini.hasApiKey()) {
       dot.className = 'status-dot online';
-      const modelLabel = this.gemini.getModel().includes('pro') ? 'Pro' : 'Flash';
       const premiumLabel = this.gemini.getIsPremium() ? ' 👑' : '';
-      text.textContent = `🤖 Gemini ${modelLabel}${premiumLabel} Attivo`;
+      text.textContent = `🤖 Gemini Flash${premiumLabel} Attivo`;
       statusBar.classList.add('active');
     } else {
       dot.className = 'status-dot offline';
