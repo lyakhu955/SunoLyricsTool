@@ -37,10 +37,6 @@
 html {
   font-size: 16px;
   scroll-behavior: smooth;
-  display: inline-block;
-  -webkit-display: inline-block;
-  animation: richiesteBounce 1.2s cubic-bezier(.28,.84,.42,1) infinite, richiesteGlow 2.2s ease-in-out infinite;
-  -webkit-animation: richiesteBounce 1.2s cubic-bezier(.28,.84,.42,1) infinite, richiesteGlow 2.2s ease-in-out infinite;
 }
 
 body {
@@ -72,26 +68,6 @@ body {
   right: 0;
   z-index: 1000;
   background: linear-gradient(135deg, var(--primary), var(--accent));
-  @keyframes richiesteBounce {
-    0%, 100% { transform: translateY(0); }
-    40% { transform: translateY(-8px); }
-    60% { transform: translateY(-4px); }
-  }
-
-  @keyframes richiesteGlow {
-    0% {
-      text-shadow: 0 0 0 rgba(236,72,153,0.0), 0 0 0 rgba(124,58,237,0.0);
-      box-shadow: none;
-    }
-    50% {
-      text-shadow: 0 6px 14px rgba(236,72,153,0.12), 0 0 30px rgba(124,58,237,0.08);
-      box-shadow: 0 6px 30px rgba(124,58,237,0.08);
-    }
-    100% {
-      text-shadow: 0 10px 30px rgba(236,72,153,0.14), 0 0 40px rgba(124,58,237,0.12);
-      box-shadow: 0 10px 40px rgba(124,58,237,0.12);
-    }
-  }
 
   padding: 12px 16px;
   animation: slideDown 0.5s ease-out;
@@ -314,6 +290,64 @@ body {
   font-size: 10px;
   font-weight: 600;
   letter-spacing: 0.3px;
+}
+
+/* ===== RICHIESTE NAV HIGHLIGHT ===== */
+/* make the Richieste icon animate (bounce + gentle glow)
+   placed here to ensure keyframes are at top-level and valid */
+.bottom-nav-item#navRichieste {
+  color: var(--accent);
+}
+
+/* Richieste: smoother bounce + visible glow */
+.bottom-nav-item#navRichieste .bottom-nav-icon {
+  display: inline-block;
+  position: relative;
+  transform-origin: center;
+  -webkit-transform-origin: center;
+  /* two animations: bounce (faster) + glow (slower) */
+  animation: richiesteBounce 1.4s cubic-bezier(.22,.9,.32,1) infinite, richiesteGlow 2.6s ease-in-out infinite;
+  -webkit-animation: richiesteBounce 1.4s cubic-bezier(.22,.9,.32,1) infinite, richiesteGlow 2.6s ease-in-out infinite;
+}
+
+@keyframes richiesteBounce {
+  0% { transform: translateY(0) scale(1); }
+  30% { transform: translateY(-10px) scale(1.03); }
+  50% { transform: translateY(-6px) scale(1.02); }
+  70% { transform: translateY(-2px) scale(1.01); }
+  100% { transform: translateY(0) scale(1); }
+}
+
+@keyframes richiesteGlow {
+  0% {
+    text-shadow: 0 0 0 rgba(236,72,153,0.0), 0 0 0 rgba(124,58,237,0.0);
+    filter: drop-shadow(0 0 0 rgba(124,58,237,0));
+  }
+  50% {
+    text-shadow: 0 8px 18px rgba(236,72,153,0.14), 0 0 36px rgba(124,58,237,0.10);
+    filter: drop-shadow(0 8px 18px rgba(124,58,237,0.12));
+  }
+  100% {
+    text-shadow: 0 6px 12px rgba(236,72,153,0.12), 0 0 30px rgba(124,58,237,0.08);
+    filter: drop-shadow(0 6px 12px rgba(124,58,237,0.10));
+  }
+}
+
+/* keep a subtle circular glow layer behind the icon for stronger effect on some browsers */
+.bottom-nav-item#navRichieste .bottom-nav-icon::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 42px;
+  height: 42px;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  background: radial-gradient(circle at center, rgba(236,72,153,0.12), rgba(124,58,237,0.06) 60%, transparent 70%);
+  pointer-events: none;
+  filter: blur(6px);
+  opacity: 0.9;
+  animation: richiesteGlow 2.6s ease-in-out infinite;
 }
 
 /* ===== MAIN CONTENT ===== */
