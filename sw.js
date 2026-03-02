@@ -1,12 +1,10 @@
-const CACHE_NAME = 'suno-lyrics-v8';
+const CACHE_NAME = 'suno-lyrics-v9';
 const urlsToCache = [
   '/',
   '/index.html',
   '/css/style.css',
   '/js/app.js',
   '/js/gemini-service.js',
-  '/js/lyrics-engine.js',
-  '/js/suno-knowledge.js',
   '/manifest.json'
 ];
 
@@ -31,25 +29,28 @@ self.addEventListener('activate', event => {
   );
 });
 
-// Fetch - cache first, then network
+// Fetch - network first, cache fallback (app shell only)
 self.addEventListener('fetch', event => {
+  // Always go to network for API calls
+  if (event.request.url.includes('generativelanguage.googleapis.com')) {
+    return;
+  }
+
   event.respondWith(
-    caches.match(event.request)
+    fetch(event.request)
       .then(response => {
-        if (response) return response;
-        return fetch(event.request).then(fetchResponse => {
-          if (!fetchResponse || fetchResponse.status !== 200 || fetchResponse.type !== 'basic') {
-            return fetchResponse;
-          }
-          const responseToCache = fetchResponse.clone();
+        // Update cache with fresh content
+        if (response && response.status === 200 && response.type === 'basic') {
+          const responseToCache = response.clone();
           caches.open(CACHE_NAME).then(cache => {
             cache.put(event.request, responseToCache);
           });
-          return fetchResponse;
-        });
+        }
+        return response;
       })
       .catch(() => {
-        return caches.match('/index.html');
+        // Network failed - try cache for app shell
+        return caches.match(event.request);
       })
   );
 });

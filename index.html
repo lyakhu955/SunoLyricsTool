@@ -20,7 +20,7 @@
       <span class="install-icon">📲</span>
       <div class="install-text">
         <strong>Installa l'app!</strong>
-        <small>Usa SunoLyrics offline dal tuo telefono</small>
+        <small>Accedi rapidamente a SunoLyrics dal tuo telefono</small>
       </div>
       <button id="installBtn" class="btn-install">Installa</button>
       <button id="dismissInstall" class="btn-dismiss">✕</button>
@@ -104,15 +104,6 @@
         </div>
         <button id="saveApiKey" class="btn-primary" style="width:100%">💾 Salva Impostazioni</button>
         <button id="testApiKey" class="btn-secondary" style="width:100%; margin-top:8px">🧪 Testa Connessione</button>
-        <hr class="modal-divider">
-        <div class="form-group">
-          <label class="checkbox-label">
-            <input type="checkbox" id="useAiFallback" checked>
-            <span class="checkmark"></span>
-            Usa generazione template se offline/errore AI
-          </label>
-        </div>
-
         <hr class="modal-divider">
         <button id="adminAccessBtn" class="btn-admin-access">🔒 Admin</button>
       </div>
@@ -221,7 +212,7 @@
     </div>
     <div id="aiStatusBar" class="ai-status-bar">
       <span class="status-dot offline"></span>
-      <span class="ai-status-text">Modalità Template</span>
+      <span class="ai-status-text">⚠️ AI non attiva</span>
     </div>
     <p class="created-by">Creato da Leonid Lyakhu</p>
     <p class="tagline">Genera testi e prompt perfetti per Suno</p>
@@ -797,9 +788,7 @@ We light it up like fire</pre>
     <p>Suno Lyrics AI Generator • PWA Installabile 📲</p>
   </footer>
 
-  <script src="js/suno-knowledge.js"></script>
   <script src="js/gemini-service.js"></script>
-  <script src="js/lyrics-engine.js"></script>
   <script src="js/app.js"></script>
 </body>
 </html>

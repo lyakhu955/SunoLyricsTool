@@ -1180,11 +1180,7 @@ select.input {
   border: 1px solid rgba(52, 168, 83, 0.3);
 }
 
-.source-badge.template {
-  background: rgba(245, 158, 11, 0.15);
-  color: #fbbf24;
-  border: 1px solid rgba(245, 158, 11, 0.3);
-}
+
 
 /* ===== BUTTON STATES ===== */
 .btn-primary:disabled,

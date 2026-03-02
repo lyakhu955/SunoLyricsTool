@@ -1,6 +1,6 @@
 // ============================================
 // SUNO LYRICS AI GENERATOR - MAIN APP
-// PWA with offline support, installable
+// PWA installable, AI-powered
 // ============================================
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -10,7 +10,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
 class SunoLyricsApp {
   constructor() {
-    this.engine = new LyricsEngine();
     this.gemini = new GeminiService();
     this.savedItems = JSON.parse(localStorage.getItem('sunoLyrics_saved') || '[]');
     this.deferredPrompt = null;
@@ -23,7 +22,6 @@ class SunoLyricsApp {
       productionChips: []
     };
     this.metaTagContent = '';
-    this.useFallback = localStorage.getItem('sunoLyrics_useFallback') !== 'false';
   }
 
   init() {
@@ -145,9 +143,16 @@ class SunoLyricsApp {
 
   async handleGenerate() {
     const btn = document.getElementById('generateBtn');
+
+    // Check if AI is available
+    if (!this.gemini.hasApiKey()) {
+      this.showToast('❌ AI non configurata. Vai in Impostazioni per attivare Premium o inserire una API key.', 'error', 5000);
+      return;
+    }
+
     btn.classList.add('loading');
     btn.disabled = true;
-    btn.innerHTML = '<span class="btn-icon">⏳</span> Generazione AI in corso...';
+    btn.innerHTML = '<span class="btn-icon">🤖</span> Gemini AI sta scrivendo...';
 
     const options = {
       theme: document.getElementById('songTheme').value || 'vita e sentimenti',
@@ -164,43 +169,18 @@ class SunoLyricsApp {
     };
 
     try {
-      let result;
+      const aiResult = await this.gemini.generateLyrics(options);
 
-      // Try Gemini AI first
-      if (this.gemini.hasApiKey()) {
-        try {
-          btn.innerHTML = '<span class="btn-icon">🤖</span> Gemini AI sta scrivendo...';
-          const aiResult = await this.gemini.generateLyrics(options);
-          
-          // Build tips from knowledge base
-          const genreConfig = SunoKnowledge.genreConfig[options.genre] || SunoKnowledge.genreConfig.pop;
-          const tips = this.engine.generateTips(options.genre, genreConfig, options.mood, options.structure);
+      const result = {
+        stylePrompt: aiResult.stylePrompt,
+        lyrics: aiResult.lyrics,
+        tips: aiResult.tips || [],
+        source: 'gemini'
+      };
 
-          result = {
-            stylePrompt: aiResult.stylePrompt,
-            lyrics: aiResult.lyrics,
-            tips: tips,
-            source: 'gemini'
-          };
-          const usedModel = this.gemini._lastModelUsed || this.gemini.getModel();
-          const modelLabel = usedModel.includes('pro') ? 'Pro' : 'Flash';
-          this.showToast(`🤖 Generato con Gemini ${modelLabel}!`, 'success');
-        } catch (aiErr) {
-          console.warn('Gemini AI error:', aiErr.message);
-          if (this.useFallback) {
-            this.showToast(`⚠️ AI non disponibile: ${aiErr.message}. Uso template...`, 'warning', 4000);
-            result = this.engine.generate(options);
-            result.source = 'template';
-          } else {
-            throw aiErr;
-          }
-        }
-      } else {
-        // No API key - use template engine
-        result = this.engine.generate(options);
-        result.source = 'template';
-        this.showToast('✨ Testo generato (template). Configura Gemini AI per risultati migliori!', 'info', 4000);
-      }
+      const usedModel = this.gemini._lastModelUsed || this.gemini.getModel();
+      const modelLabel = usedModel.includes('pro') ? 'Pro' : 'Flash';
+      this.showToast(`🤖 Generato con Gemini ${modelLabel}!`, 'success');
 
       this.displayResults(result, options);
 
@@ -227,10 +207,7 @@ class SunoLyricsApp {
     lyricsEl.innerHTML = this.highlightLyrics(result.lyrics);
 
     // Source badge
-    const sourceBadge = result.source === 'gemini'
-      ? '<span class="source-badge gemini">🤖 Gemini AI</span>'
-      : '<span class="source-badge template">📝 Template</span>';
-    lyricsEl.insertAdjacentHTML('afterbegin', sourceBadge + '<br><br>');
+    lyricsEl.insertAdjacentHTML('afterbegin', '<span class="source-badge gemini">🤖 Gemini AI</span><br><br>');
 
     // Tips
     const tipsEl = document.getElementById('tipsOutput');
@@ -504,7 +481,6 @@ class SunoLyricsApp {
     const saveBtn = document.getElementById('saveApiKey');
     const testBtn = document.getElementById('testApiKey');
     const toggleBtn = document.getElementById('toggleKeyVisibility');
-    const fallbackCheckbox = document.getElementById('useAiFallback');
     const apiKeyInput = document.getElementById('geminiApiKey');
     const modelSelect = document.getElementById('geminiModel');
 
@@ -515,7 +491,7 @@ class SunoLyricsApp {
     if (modelSelect) {
       modelSelect.value = this.gemini.getModel();
     }
-    fallbackCheckbox.checked = this.useFallback;
+
 
     // Open / Close
     settingsBtn?.addEventListener('click', () => {
@@ -656,12 +632,6 @@ class SunoLyricsApp {
 
       testBtn.disabled = false;
       testBtn.textContent = '🧪 Testa Connessione';
-    });
-
-    // Fallback toggle
-    fallbackCheckbox?.addEventListener('change', () => {
-      this.useFallback = fallbackCheckbox.checked;
-      localStorage.setItem('sunoLyrics_useFallback', this.useFallback);
     });
 
     // ===== ADMIN ACCESS =====
@@ -835,7 +805,7 @@ class SunoLyricsApp {
       statusBar.classList.add('active');
     } else {
       dot.className = 'status-dot offline';
-      text.textContent = '📝 Modalità Template';
+      text.textContent = '⚠️ AI non attiva — Configura nelle Impostazioni';
       statusBar.classList.remove('active');
     }
   }

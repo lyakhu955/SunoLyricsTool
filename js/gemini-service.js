@@ -221,6 +221,8 @@ FORMATO OUTPUT RICHIESTO:
 (scrivi qui lo style prompt per Suno in una sola riga)
 ---LYRICS---
 (scrivi qui i lyrics completi con meta tags [])
+---TIPS---
+(scrivi 3-5 consigli brevi e pratici per usare questo testo su Suno, uno per riga)
 ---END---`;
 
     return prompt;
@@ -335,14 +337,21 @@ FORMATO OUTPUT RICHIESTO:
   parseResponse(text) {
     let stylePrompt = '';
     let lyrics = '';
+    let tips = [];
 
     // Try to parse structured output
     const styleMatch = text.match(/---STYLE PROMPT---\s*([\s\S]*?)\s*---LYRICS---/i);
-    const lyricsMatch = text.match(/---LYRICS---\s*([\s\S]*?)\s*(?:---END---|$)/i);
+    const lyricsMatch = text.match(/---LYRICS---\s*([\s\S]*?)\s*(?:---TIPS---|---END---|$)/i);
+    const tipsMatch = text.match(/---TIPS---\s*([\s\S]*?)\s*(?:---END---|$)/i);
 
     if (styleMatch && lyricsMatch) {
       stylePrompt = styleMatch[1].trim();
       lyrics = lyricsMatch[1].trim();
+      if (tipsMatch) {
+        tips = tipsMatch[1].trim().split('\n')
+          .map(t => t.replace(/^[-•*\d.]+\s*/, '').trim())
+          .filter(t => t.length > 0);
+      }
     } else {
       // Fallback: try to detect style prompt and lyrics from unstructured output
       const lines = text.split('\n');
@@ -381,7 +390,7 @@ FORMATO OUTPUT RICHIESTO:
     stylePrompt = stylePrompt.replace(/^```.*$/gm, '').replace(/\*\*/g, '').trim();
     lyrics = lyrics.replace(/^```.*$/gm, '').replace(/\*\*/g, '').trim();
 
-    return { stylePrompt, lyrics };
+    return { stylePrompt, lyrics, tips };
   }
 
   // ---- GENERATE STYLE PROMPT ONLY ----
