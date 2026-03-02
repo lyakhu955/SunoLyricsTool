@@ -162,6 +162,14 @@ class SunoLyricsApp {
     const navItems = document.querySelectorAll('.bottom-nav-item');
     navItems.forEach(item => {
       item.addEventListener('click', () => {
+        // If this nav item points to an external/internal page, navigate there
+        const href = item.dataset.href;
+        if (href) {
+          // Navigate to the provided href in the same tab
+          window.location.href = href;
+          return;
+        }
+
         // Remove active from all nav items and tab contents
         navItems.forEach(n => n.classList.remove('active'));
         document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
@@ -169,7 +177,10 @@ class SunoLyricsApp {
         // Activate clicked item
         item.classList.add('active');
         const tabId = item.dataset.tab;
-        document.getElementById(`tab-${tabId}`).classList.add('active');
+        if (tabId) {
+          const tabEl = document.getElementById(`tab-${tabId}`);
+          if (tabEl) tabEl.classList.add('active');
+        }
 
         // Scroll to top on tab switch
         window.scrollTo({ top: 0, behavior: 'smooth' });
